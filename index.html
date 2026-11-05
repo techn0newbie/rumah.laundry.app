@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0A4E5A">
+<title>Laundry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3F6F8;--dark:#0A4E5A;--pri:#0E6F7E;--light:#D6ECEF;--text:#12232E;--muted:#51626E;--line:#DDE5EA;--line2:#C9D5DC;--danger:#9B2D20;--blue:#2A78B8;--ok:#14693A}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:0}
+button:focus-visible,a:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+a{color:inherit}
+#app{min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+@media(min-width:900px){.wrap{padding:28px}}
+.row{display:flex;align-items:center;gap:12px}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card.tight{padding:0;gap:0;overflow:hidden}
+.lab{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.01em}
+@media(min-width:900px){.h1{font-size:28px}}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:1px solid var(--pri);background:#fff;color:var(--dark);font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:nowrap}
+.btn.pri{background:var(--pri);color:#fff}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.dangerfill{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.big{min-height:52px;border-radius:14px;font-size:16px}
+.btn.block{width:100%}
+.btn.locked,.btn:disabled{background:#E8EEF2;border-color:#E8EEF2;color:#7C8A94}
+.back{min-height:44px;padding:0 16px 0 12px;border-radius:10px;border:1px solid var(--line2);background:#fff;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.iconbtn{width:44px;height:44px;border-radius:10px;border:1px solid var(--line2);background:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dark)}
+.ico{width:44px;height:44px;border-radius:12px;background:var(--light);color:var(--dark);display:flex;align-items:center;justify-content:center;flex:none}
+.av{width:44px;height:44px;border-radius:22px;background:var(--light);color:var(--dark);font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.pill{padding:3px 10px;border-radius:99px;font-size:13px;font-weight:600;white-space:nowrap}
+.p-rec{background:#E3F0FB;color:#0B5690}.p-comp{background:#E8EEF2;color:#3F4F5A}.p-canc,.p-unpaid{background:#FBE3E0;color:var(--danger)}.p-paid{background:#DCF4E5;color:var(--ok)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:44px;padding:0 16px;border-radius:99px;border:1px solid var(--line2);background:#fff;font-size:14px;font-weight:600}
+.chip.on{background:var(--dark);border-color:var(--dark);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.kpi b{font-size:26px;font-weight:800;letter-spacing:-.01em}
+.kpi.locked{background:#EEF2F5;color:#7C8A94}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{min-height:92px;border-radius:16px;border:1px solid var(--line);background:#fff;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:8px;font-weight:700;font-size:15px;text-decoration:none;text-align:left}
+.tile.main{background:var(--pri);border-color:var(--pri);color:#fff}
+.tile.locked{background:#EEF2F5;color:#7C8A94;cursor:not-allowed}
+.list>*{border-bottom:1px solid #E8EEF2}.list>*:last-child{border-bottom:0}
+.item{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:64px;background:none;border:0;width:100%;text-align:left;text-decoration:none}
+.item.link:hover{background:#F7FAFB}
+.field{position:relative;display:block}
+.field .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;display:flex;color:var(--muted)}
+.field input,.field select,.field textarea{width:100%;height:52px;background:#fff;border:1px solid var(--line2);border-radius:12px;padding:0 14px 0 46px}
+.field textarea{height:auto;padding-top:14px;padding-bottom:14px;line-height:1.4;resize:none}
+.field.ta .ic{top:18px;transform:none}
+.field label{position:absolute;left:46px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;transition:opacity .1s}
+.field.ta label{top:18px;transform:none}
+.field input:focus+label,.field input:not(:placeholder-shown)+label,.field textarea:focus+label,.field textarea:not(:placeholder-shown)+label{opacity:0}
+.field select{appearance:none;background:#fff}
+.err{color:var(--danger);font-size:14px;font-weight:600}
+.strip{padding:10px 14px;border-radius:12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px}
+.strip.warn{background:#FBE3E0;color:var(--danger)}
+.strip.info{background:#E3F0FB;color:#0B5690}
+.strip.ok{background:#DCF4E5;color:var(--ok)}
+.seg{display:flex;border:1px solid var(--line2);border-radius:12px;overflow:hidden}
+.seg button{flex:1;min-height:48px;border:0;background:#fff;font-weight:600}
+.seg button.on{background:var(--dark);color:#fff}
+.sw{flex:none;width:52px;height:32px;border-radius:16px;border:0;background:#B8C4CC;position:relative}
+.sw[aria-checked=true]{background:var(--pri)}
+.sw i{position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:12px;background:#fff;transition:left .12s}
+.sw[aria-checked=true] i{left:24px}
+.ovl{position:fixed;inset:0;background:rgba(10,30,40,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:480px;max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.modal h2{margin:0;font-size:20px;font-weight:800}
+@media(max-width:640px){.ovl{align-items:flex-end;padding:0}.modal{max-width:none;border-radius:18px 18px 0 0}}
+.sticky{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:5}
+.dots{display:flex;gap:14px;justify-content:center;margin:6px 0}
+.dots i{width:16px;height:16px;border-radius:8px;border:2px solid var(--pri)}
+.dots i.f{background:var(--pri)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto;width:100%}
+.pad button{min-height:62px;border-radius:16px;border:1px solid var(--line2);background:#fff;font-size:24px;font-weight:700}
+.bars{display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:8px;overflow-x:auto}
+.bar{flex:1 0 22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.bar i{width:100%;background:var(--pri);border-radius:6px 6px 0 0;min-height:2px}
+.bar span{font-size:11px;color:var(--muted)}
+.rec{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.35;white-space:pre;background:#fff;border:1px dashed var(--line2);border-radius:8px;padding:14px;overflow-x:auto}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.kv span:first-child{color:var(--muted)}.kv span:last-child{font-weight:600;text-align:right}
+.two{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.two>.l{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.two>.r{flex:1 1 340px;max-width:460px;display:flex;flex-direction:column;gap:16px}
+.menu{position:absolute;right:0;top:52px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;min-width:220px;box-shadow:0 10px 30px rgba(10,30,40,.15);z-index:20;display:flex;flex-direction:column;gap:10px}
+.spin{width:18px;height:18px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login{width:100%;max-width:380px;display:flex;flex-direction:column;gap:18px;text-align:center}
+.qty{display:flex;align-items:center;gap:6px}
+.qty input{width:84px;height:48px;border:1px solid var(--line2);border-radius:10px;text-align:center;font-weight:700}
+.qty button{width:44px;height:48px;border-radius:10px;border:1px solid var(--line2);background:#fff;font-size:22px;font-weight:700}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+/* ====== SETTING: paste the Apps Script web app address here (ends with /exec) ====== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbz92xfbeIOvu51amFgqzOT2NWuUzpFCdNVvFbqOAXz11Lq06oJ7eY3p3AeXNY7j0v8C/exec';
+
+/* ---------- tiny helpers ---------- */
+const $app = document.getElementById('app');
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const dots3 = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const money = (n) => 'IDR ' + dots3(n);
+const qtyText = (q) => String(q).replace('.', ',');
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } };
+const ssGet = (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } };
+const ssSet = (k, v) => { try { if (v === null) { sessionStorage.removeItem(k); } else { sessionStorage.setItem(k, v); } } catch (e) { /* ignore */ } };
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dateText = (s) => { if (!s) { return ''; } const m = /^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}))?/.exec(s); if (!m) { return s; } return Number(m[3]) + ' ' + MONTHS[Number(m[2]) - 1] + ' ' + m[1] + (m[4] ? ', ' + m[4] + ':' + m[5] : ''); };
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'c' + Date.now() + Math.random().toString(36).slice(2));
+const todayStr = () => { const d = new Date(); const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
+
+const IC = {
+  back: '<path d="M19 12H5M11 6l-6 6 6 6"/>', plus: '<path d="M12 5v14M5 12h14"/>', edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.500 3-5.500 7-5.500s7 2 7 5.500"/><path d="M16 4.500a3.500 3.500 0 0 1 0 7M18 15c2.500.7 4 2.300 4 5"/>',
+  print: '<path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="9" rx="2"/><path d="M7 14h10v7H7z"/>', wa: '<path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/><path d="M9 9c0 3 3 6 6 6l1-2-2-1-1 1c-1-.5-2-1.500-2.500-2.500l1-1-1-2z"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', check: '<path d="M5 12l5 5 9-10"/>',
+  trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', orders: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.900 4.900l2.100 2.100M17 17l2.100 2.100M4.900 19.100L7 17M17 7l2.100-2.100"/>',
+  report: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>', money: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
+  cat: '<path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/>', phone: '<path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>', pin: '<path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.500"/>',
+  tag: '<path d="M3 12V3h9l9 9-9 9z"/><circle cx="7.500" cy="7.500" r="1.500"/>', cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  note: '<path d="M5 3h10l4 4v14H5z"/><path d="M9 12h6M9 16h6"/>', down: '<path d="M6 9l6 6 6-6"/>', bt: '<path d="M7 7l10 10-5 4V3l5 4L7 17"/>',
+  soap: '<path d="M7 11h10v9a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z"/><path d="M9 11V8h6v3M12 3v3"/>', rent: '<path d="M3 11l9-7 9 7v9H3z"/><path d="M10 20v-6h4v6"/>',
+  supplies: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/>', transport: '<path d="M3 17V7h11v10M14 10h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  utilities: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>', wages: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  shirt: '<path d="M8 3l-5 4 3 4 2-1v11h8V10l2 1 3-4-5-4a4 4 0 0 1-8 0z"/>', bed: '<path d="M3 18V7"/><path d="M3 14h18v4"/><path d="M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.600"/>',
+  star: '<path d="M12 3l2.700 5.600 6.100.9-4.400 4.300 1 6.100-5.400-2.900-5.400 2.900 1-6.100L3.200 9.500l6.100-.9z"/>', bag: '<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>'
+};
+const svg = (n, s) => '<svg aria-hidden="true" width="' + (s || 20) + '" height="' + (s || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (IC[n] || IC.tag) + '</svg>';
+const ICON_CHOICES = ['soap', 'rent', 'supplies', 'transport', 'utilities', 'wages', 'shirt', 'bed', 'star', 'bag', 'tag'];
+
+/* ---------- state ---------- */
+const S = { token: ssGet('lt'), me: null, data: null, view: null, offline: !navigator.onLine, busy: false, modal: null, notice: '', menu: false, lastActive: Date.now() };
+
+/* ---------- server calls ---------- */
+async function api(action, payload) {
+  if (!API_URL || API_URL.indexOf('PASTE_') === 0) { throw { code: 'setup', message: 'The app is not connected yet. Paste the web app address into index.html (API_URL).' }; }
+  let res;
+  try {
+    res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action, token: S.token }, payload || {})) });
+  } catch (e) { throw { code: 'network', message: 'No connection. Check the internet and try again.' }; }
+  let j;
+  try { j = await res.json(); } catch (e) { throw { code: 'network', message: 'The server did not answer. Try again.' }; }
+  if (!j.ok) {
+    if (j.code === 'auth') { signOutLocal(j.message || 'Your sign-in expired. Please sign in again.'); }
+    throw { code: j.code, message: j.message };
+  }
+  return j.data;
+}
+function signOutLocal(msg) { S.token = null; S.me = null; S.data = null; S.modal = null; ssSet('lt', null); S.notice = msg || ''; render(); }
+async function signOut() { try { await api('logout'); } catch (e) { /* ignore */ } signOutLocal(''); }
+
+/* ---------- permissions ---------- */
+const can = (p) => !!(S.me && S.me.perms && S.me.perms[p]);
+
+/* ---------- receipt ---------- */
+function paperCols() { return lsGet('paper', '58') === '80' ? 48 : 32; }
+function receiptLines(o, st) {
+  const W = paperCols();
+  const pad = (l, r) => l + ' '.repeat(Math.max(1, W - l.length - r.length)) + r;
+  const ctr = (t) => ' '.repeat(Math.max(0, Math.floor((W - t.length) / 2))) + t;
+  const wrap = (t) => { const out = []; let line = ''; String(t).split(/\s+/).forEach((w) => { if (!w) { return; } if ((line + ' ' + w).trim().length > W) { if (line) { out.push(line); } line = w; } else { line = (line + ' ' + w).trim(); } }); if (line) { out.push(line); } return out; };
+  const d = '-'.repeat(W);
+  const out = [];
+  wrap(st.shop_name || '').forEach((l) => out.push(ctr(l)));
+  wrap(st.shop_address || '').forEach((l) => out.push(ctr(l)));
+  if ((st.header_text || '').trim()) { wrap(st.header_text).forEach((l) => out.push(ctr(l))); }
+  out.push(d, o.id, dateText(o.receivedAt).replace(',', ''), o.customerName + (o.customerLast4 ? ' · ' + o.customerLast4 : ''), d);
+  let sub = 0;
+  o.items.forEach((i) => { sub += i.subtotal; out.push(i.name); out.push(pad(qtyText(i.qty) + ' ' + (i.unit || unitOf(i)) + ' x ' + dots3(i.unitPrice), dots3(i.subtotal))); });
+  out.push(d, pad('Subtotal', dots3(sub)));
+  const rnd = o.total - sub;
+  if (rnd !== 0) { out.push(pad('Rounding', (rnd > 0 ? '+' : '-') + dots3(Math.abs(rnd)))); }
+  out.push(pad('TOTAL', 'IDR ' + dots3(o.total)));
+  out.push(pad('Status', o.status === 'Cancelled' ? 'CANCELLED' : (o.paid ? 'PAID' : 'UNPAID')));
+  if ((o.note || '').trim()) { out.push(d); wrap('Notes: ' + o.note.trim()).forEach((l) => out.push(l)); }
+  if ((st.receipt_footer || '').trim()) { out.push(d); wrap(st.receipt_footer).forEach((l) => out.push(l)); }
+  return out;
+}
+function unitOf(item) { const s = (S.data && S.data.services || []).find((x) => x.id === item.serviceId); return s ? s.unit : 'kg'; }
+const receiptText = (o) => receiptLines(o, S.data.settings).join('\n');
+const waLink = (o) => 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent('```\n' + receiptText(o) + '\n```');
+
+/* ---------- printer (Bluetooth LE, or the RawBT app) ---------- */
+const PRINTER = { dev: null, ch: null };
+const BLE_SERVICES = ['000018f0-0000-1000-8000-00805f9b34fb', 'e7810a71-73ae-499d-8c15-faa9aef0c3f2', '0000ff00-0000-1000-8000-00805f9b34fb', '0000ffe0-0000-1000-8000-00805f9b34fb', '49535343-fe7d-4ae5-8fa9-9fafd205e455', '0000fee7-0000-1000-8000-00805f9b34fb'];
+const printerMode = () => lsGet('printer_mode', 'ble');
+const ascii = (t) => t.replace(/·/g, '-').replace(/[^\x09\x0a\x20-\x7e]/g, '?');
+function escpos(text) {
+  const body = new TextEncoder().encode(ascii(text) + '\n\n\n\n');
+  const out = new Uint8Array(2 + body.length);
+  out[0] = 0x1b; out[1] = 0x40; out.set(body, 2);
+  return out;
+}
+async function bleConnect() {
+  if (!navigator.bluetooth) { throw new Error('This browser cannot use Bluetooth. Use Chrome on Android, or switch to the RawBT app in Settings.'); }
+  const dev = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BLE_SERVICES });
+  const server = await dev.gatt.connect();
+  const services = await server.getPrimaryServices();
+  let ch = null;
+  for (const sv of services) {
+    const chars = await sv.getCharacteristics();
+    for (const c of chars) { if (!ch && (c.properties.write || c.properties.writeWithoutResponse)) { ch = c; } }
+  }
+  if (!ch) { throw new Error('Connected, but this printer has no writable channel. Try the RawBT app instead.'); }
+  PRINTER.dev = dev; PRINTER.ch = ch;
+  dev.addEventListener('gattserverdisconnected', () => { PRINTER.ch = null; });
+  return dev.name || 'Printer';
+}
+async function bleWrite(bytes) {
+  if (!PRINTER.ch || !PRINTER.dev.gatt.connected) { await bleConnect(); }
+  for (let i = 0; i < bytes.length; i += 100) {
+    const chunk = bytes.slice(i, i + 100);
+    if (PRINTER.ch.properties.writeWithoutResponse) { await PRINTER.ch.writeValueWithoutResponse(chunk); } else { await PRINTER.ch.writeValue(chunk); }
+    await new Promise((r) => setTimeout(r, 25));
+  }
+}
+async function printText(text) {
+  const bytes = escpos(text);
+  if (printerMode() === 'rawbt') {
+    let bin = ''; bytes.forEach((b) => { bin += String.fromCharCode(b); });
+    const a = document.createElement('a'); a.href = 'rawbt:base64,' + btoa(bin); document.body.appendChild(a); a.click(); a.remove();
+    return;
+  }
+  await bleWrite(bytes);
+}
+
+/* ---------- routing ---------- */
+const route = () => (location.hash || '#/').slice(1).split('/').filter(Boolean);
+const go = (h) => { if (location.hash === h) { render(); } else { location.hash = h; } };
+window.addEventListener('hashchange', () => { S.modal = null; S.menu = false; render(); });
+window.addEventListener('online', () => { S.offline = false; paintOffline(); });
+window.addEventListener('offline', () => { S.offline = true; paintOffline(); });
+function paintOffline() { const e = document.getElementById('offline'); if (e) { e.hidden = !S.offline; } }
+['click', 'keydown', 'touchstart'].forEach((ev) => document.addEventListener(ev, () => { S.lastActive = Date.now(); }, { passive: true }));
+setInterval(() => { if (S.token && Date.now() - S.lastActive > 10 * 60 * 1000) { signOutLocal('You were signed out after 10 minutes without use.'); } }, 15000);
+
+/* ---------- shared pieces ---------- */
+const offlineStrip = () => '<div id="offline" class="strip warn" role="status" ' + (S.offline ? '' : 'hidden') + '>No connection. You can keep looking, but saving needs the internet.</div>';
+const statusPill = (o) => o.status === 'Cancelled' ? '<span class="pill p-canc">Cancelled</span>' : (o.status === 'Completed' ? '<span class="pill p-comp">Completed</span>' : '<span class="pill p-rec">Received</span>');
+const payPill = (o) => o.status === 'Cancelled' ? '' : (o.paid ? '<span class="pill p-paid">Paid</span>' : '<span class="pill p-unpaid">Unpaid</span>');
+const topBar = (title, back, right) => '<div class="row" style="flex-wrap:wrap">' + (back ? '<a class="back" href="' + back + '">' + svg('back') + (back === '#/' ? 'Dashboard' : 'Back') + '</a>' : '') + '<h1 class="h1 grow">' + esc(title) + '</h1>' + (right || '') + '</div>';
+const iconById = (id) => { const c = (S.data.categories || []).find((x) => x.id === id); return c ? c.icon : 'tag'; };
+const catName = (id) => { const c = (S.data.categories || []).find((x) => x.id === id); return c ? c.name : 'Other'; };
+const lockedBtn = (label) => '<button class="btn locked block" disabled aria-disabled="true">' + svg('lock') + esc(label) + ' · Owner only</button>';
+function field(id, icon, label, value, extra) {
+  extra = extra || {};
+  const tag = extra.area ? 'textarea' : 'input';
+  const inner = extra.area ? esc(value || '') : '';
+  const val = extra.area ? '' : ' value="' + esc(value || '') + '"';
+  return '<div class="field' + (extra.area ? ' ta' : '') + '"><span class="ic">' + svg(icon) + '</span><' + tag + ' id="' + id + '" placeholder=" "' + val + (extra.type ? ' type="' + extra.type + '"' : '') + (extra.mode ? ' inputmode="' + extra.mode + '"' : '') + (extra.max ? ' maxlength="' + extra.max + '"' : '') + (extra.rows ? ' rows="' + extra.rows + '"' : '') + ' autocomplete="off">' + (extra.area ? inner + '</textarea>' : '') + '<label for="' + id + '">' + esc(label) + '</label></div>';
+}
+const val = (id) => { const e = document.getElementById(id); return e ? e.value : ''; };
+function openModal(html, onMount) { S.modal = { html, onMount }; paintModal(); }
+function closeModal() { S.modal = null; paintModal(); }
+function paintModal() {
+  let host = document.getElementById('modal-host');
+  if (!host) { host = document.createElement('div'); host.id = 'modal-host'; document.body.appendChild(host); }
+  if (!S.modal) { host.innerHTML = ''; return; }
+  host.innerHTML = '<div class="ovl" id="ovl"><div class="modal" role="dialog" aria-modal="true">' + S.modal.html + '</div></div>';
+  document.getElementById('ovl').addEventListener('mousedown', (e) => { if (e.target.id === 'ovl') { closeModal(); } });
+  if (S.modal.onMount) { S.modal.onMount(host); }
+  const f = host.querySelector('input,textarea,select'); if (f && !/^(checkbox|radio)$/.test(f.type)) { try { f.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+}
+const modalErr = (m) => { const e = document.getElementById('merr'); if (e) { e.textContent = m || ''; e.hidden = !m; } };
+/* A save button: shows Saving..., then "Not saved. Try again" if the connection fails. */
+async function saving(btnId, fn) {
+  const b = document.getElementById(btnId);
+  const label = b ? b.innerHTML : '';
+  if (b) { b.disabled = true; b.innerHTML = '<span class="spin"></span> Saving...'; }
+  modalErr('');
+  try { await fn(); }
+  catch (e) {
+    if (b) { b.disabled = false; b.innerHTML = e.code === 'network' ? 'Not saved. Try again' : label; }
+    if (e.code !== 'auth') { modalErr(e.message || 'Something went wrong.'); }
+    if (e.code === 'changed') { const m = document.getElementById('merr'); if (m) { m.innerHTML = esc(e.message) + ' <a href="javascript:location.reload()" style="color:inherit">Reload</a>'; } }
+  }
+}
+async function reloadData() { S.data = Object.assign(S.data || {}, await api('bootstrap')); S.me = S.data.me; }
+
+/* ---------- render root ---------- */
+async function render() {
+  S.menu = false;
+  if (!S.token) { return renderLogin(); }
+  if (!S.data) {
+    $app.innerHTML = '<div class="center"><div class="muted"><span class="spin"></span> Loading...</div></div>';
+    try { await reloadData(); } catch (e) { if (S.token) { $app.innerHTML = '<div class="center"><div class="card" style="max-width:420px"><div class="err">' + esc(e.message) + '</div><button class="btn pri" id="retry">Try again</button></div></div>'; document.getElementById('retry').onclick = () => render(); } return; }
+  }
+  const r = route();
+  const views = { '': vDashboard, new: vNewOrder, orders: vOrders, order: vOrder, customers: vCustomers, services: vServices, expenses: vExpenses, reports: vReports, settings: vSettings, categories: vCategories, users: vUsers };
+  const fn = views[r[0] || ''] || vDashboard;
+  window.scrollTo(0, 0);
+  try { await fn(r); } catch (e) { if (S.token) { $app.innerHTML = '<div class="wrap">' + topBar('Something went wrong', '#/') + '<div class="card"><div class="err">' + esc(e.message || e) + '</div><button class="btn pri" onclick="render()">Try again</button></div></div>'; } }
+}
+
+/* ================= Login / first-time setup ================= */
+async function renderLogin() {
+  S.modal = null; paintModal();
+  if (!API_URL || API_URL.indexOf('PASTE_') === 0) {
+    $app.innerHTML = '<div class="center"><div class="card" style="max-width:460px"><h1 class="h1">Almost there</h1><div class="muted">The app is not connected to the Google Sheet yet. Open index.html and paste the web app address into <b>API_URL</b>.</div></div></div>'; return;
+  }
+  $app.innerHTML = '<div class="center"><div class="muted"><span class="spin"></span> Connecting...</div></div>';
+  let st;
+  try { st = await api('status'); } catch (e) { $app.innerHTML = '<div class="center"><div class="card" style="max-width:420px"><div class="err">' + esc(e.message) + '</div><button class="btn pri" id="retry">Try again</button></div></div>'; document.getElementById('retry').onclick = renderLogin; return; }
+  if (st.needsSetup) { return renderSetup(); }
+  let pin = '', busy = false;
+  const paint = (msg, isErr) => {
+    $app.innerHTML = '<div class="center"><div class="login"><div><div class="ico" style="margin:0 auto 12px;width:56px;height:56px;border-radius:16px">' + svg('lock', 28) + '</div><h1 class="h1">Enter your PIN</h1><div class="muted" style="margin-top:6px">6 digits</div></div><div class="dots" aria-label="' + pin.length + ' of 6 digits entered">' + [0, 1, 2, 3, 4, 5].map((i) => '<i class="' + (i < pin.length ? 'f' : '') + '"></i>').join('') + '</div><div style="min-height:24px" role="status" class="' + (isErr ? 'err' : 'muted') + '">' + esc(msg || S.notice || '') + '</div><div class="pad">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => '<button data-k="' + n + '">' + n + '</button>').join('') + '<span></span><button data-k="0">0</button><button data-k="del" aria-label="Delete">' + svg('back', 24) + '</button></div></div></div>';
+    $app.querySelectorAll('[data-k]').forEach((b) => { b.onclick = () => press(b.dataset.k); });
+  };
+  const press = async (k) => {
+    if (busy) { return; }
+    S.notice = '';
+    if (k === 'del') { pin = pin.slice(0, -1); return paint(); }
+    if (pin.length >= 6) { return; }
+    pin += k; paint();
+    if (pin.length === 6) {
+      busy = true; paint('Checking...');
+      try {
+        const d = await api('login', { pin });
+        S.token = d.token; ssSet('lt', d.token); S.me = d.me; S.data = null; S.lastActive = Date.now(); busy = false; location.hash = '#/'; render();
+      } catch (e) { busy = false; pin = ''; paint(e.message, true); }
+    }
+  };
+  document.onkeydown = (ev) => { if (S.token) { return; } if (/^\d$/.test(ev.key)) { press(ev.key); } else if (ev.key === 'Backspace') { press('del'); } };
+  paint();
+}
+function renderSetup() {
+  $app.innerHTML = '<div class="center"><form class="login" id="sf" style="text-align:left"><div><h1 class="h1">Welcome</h1><div class="muted" style="margin-top:6px">First-time setup. Create the owner account. Choose a 6-digit PIN that only you know.</div></div>' + field('sn', 'user', 'Your name', '') + field('sp', 'lock', '6-digit PIN', '', { type: 'password', mode: 'numeric', max: 6 }) + field('sp2', 'lock', 'Repeat the PIN', '', { type: 'password', mode: 'numeric', max: 6 }) + '<div id="merr" class="err" hidden></div><button class="btn pri big block" id="sb" type="submit">Create owner</button></form></div>';
+  document.getElementById('sf').onsubmit = (ev) => {
+    ev.preventDefault();
+    const name = val('sn').trim(), p1 = val('sp'), p2 = val('sp2');
+    if (!name) { return modalErr('Please enter your name.'); }
+    if (!/^\d{6}$/.test(p1)) { return modalErr('The PIN must be exactly 6 digits.'); }
+    if (p1 !== p2) { return modalErr('The two PINs do not match.'); }
+    saving('sb', async () => { await api('setup', { name, pin: p1 }); S.notice = 'Owner created. Sign in with your PIN.'; renderLogin(); });
+  };
+}
+
+/* ================= Dashboard ================= */
+let dashPeriod = 'today';
+async function vDashboard() {
+  const d = await api('dashboard', { period: dashPeriod });
+  const st = S.data.settings;
+  const tile = (href, icon, label, ok, main) => ok ? '<a class="tile' + (main ? ' main' : '') + '" href="' + href + '">' + svg(icon, 26) + '<span>' + label + '</span></a>' : '<div class="tile locked" aria-disabled="true" role="link">' + svg('lock', 26) + '<span>' + label + '<br><span class="small" style="font-weight:600">Owner only</span></span></div>';
+  const kp = d.locked
+    ? ['Sales', 'Money received', 'Still unpaid', 'Orders'].map((l) => '<div class="kpi locked"><span class="small" style="font-weight:600">' + l + '</span><b>' + svg('lock', 22) + '</b><span class="small">Owner only</span></div>').join('')
+    : '<div class="kpi"><span class="small muted" style="font-weight:600">Sales</span><b>' + money(d.sales) + '</b><span class="small muted">' + d.orders + ' orders</span></div>' +
+      '<div class="kpi"><span class="small muted" style="font-weight:600">Money received</span><b>' + money(d.paid) + '</b><span class="small muted">' + (d.sales ? Math.round(d.paid / d.sales * 100) : 0) + '% of sales collected</span></div>' +
+      '<div class="kpi"><span class="small muted" style="font-weight:600">Still unpaid</span><b>' + money(d.unpaid) + '</b><span class="small muted">' + d.unpaidOrders + (d.unpaidOrders === 1 ? ' order' : ' orders') + ' waiting for payment</span></div>' +
+      '<div class="kpi"><span class="small muted" style="font-weight:600">Orders</span><b>' + d.orders + '</b><span class="small muted">Average ' + money(d.orders ? Math.round(d.sales / d.orders) : 0) + ' per order</span></div>';
+  const periods = [['today', 'Today'], ['week', 'Last 7 days'], ['month', 'This month'], ['lastmonth', 'Last month']];
+  const dt = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() +
+    '<div class="row between" style="position:relative"><div class="grow"><h1 class="h1">' + esc(st.shop_name) + '</h1><div class="muted small">' + esc(dt) + '</div></div>' +
+    '<button class="btn" id="um" aria-haspopup="true" aria-expanded="false" style="padding:0 12px 0 8px"><span class="av" style="width:32px;height:32px;font-size:14px">' + esc(S.me.name.charAt(0).toUpperCase()) + '</span>' + esc(S.me.name) + svg('down', 16) + '</button>' +
+    '<div class="menu" id="umenu" hidden><div class="small muted">Signed in as</div><div style="font-weight:700">' + esc(S.me.name) + ' <span class="pill p-comp">' + (S.me.role === 'owner' ? 'Owner' : 'Staff') + '</span></div><button class="btn block" id="so">Sign out</button></div></div>' +
+    '<div class="chips" role="group" aria-label="Period">' + periods.map((p) => '<button class="chip' + (dashPeriod === p[0] ? ' on' : '') + '" data-p="' + p[0] + '">' + p[1] + '</button>').join('') + '</div>' +
+    '<div class="kpis">' + kp + '</div>' +
+    '<div class="tiles">' + tile('#/new', 'plus', 'New order', true, true) + tile('#/orders', 'search', 'Find order', true) + tile('#/services', 'tag', 'Services', true) + tile('#/customers', 'users', 'Customers', true) + tile('#/reports', 'report', 'Reports', can('reports')) + tile('#/expenses', 'money', 'Expenses', can('expenses')) + tile('#/settings', 'settings', 'Settings', can('owner')) + '</div>' +
+    '<div class="card tight"><div class="row between" style="padding:16px 16px 8px"><span class="lab">Latest orders</span><span class="muted small">Entered by staff</span></div><div class="list">' + (d.latest.length ? d.latest.map(orderRow).join('') : '<div class="item muted">No orders yet.</div>') + '</div></div></div>';
+  document.getElementById('um').onclick = () => { const m = document.getElementById('umenu'); m.hidden = !m.hidden; document.getElementById('um').setAttribute('aria-expanded', String(!m.hidden)); };
+  document.getElementById('so').onclick = signOut;
+  $app.querySelectorAll('[data-p]').forEach((b) => { b.onclick = () => { dashPeriod = b.dataset.p; render(); }; });
+}
+function orderRow(o) {
+  return '<a class="item link" href="#/order/' + encodeURIComponent(o.id) + '"><div class="grow"><div style="font-weight:700">' + esc(o.id) + '</div><div class="small muted">' + esc(o.customerName) + ' · ' + esc(o.items.map((i) => i.name + ' ' + (unitOf(i) === 'pcs' ? '×' + qtyText(i.qty) : qtyText(i.qty) + ' kg')).join(', ')) + '</div></div><div style="text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end"><b>' + money(o.total) + '</b><span style="display:flex;gap:4px">' + payPill(o) + statusPill(o) + '</span></div></a>';
+}
+
+/* ================= New order ================= */
+let NO = { customer: null, qty: {}, q: '', saveCode: null };
+async function vNewOrder() {
+  if (!NO.customer) { return newOrderCustomer(); }
+  const services = S.data.services.filter((s) => s.active);
+  const cats = S.data.categories.filter((c) => c.type === 'service');
+  const groups = cats.map((c) => ({ c, list: services.filter((s) => s.categoryId === c.id) })).filter((g) => g.list.length);
+  const lines = () => services.filter((s) => Number(NO.qty[s.id]) > 0).map((s) => ({ s, q: Number(NO.qty[s.id]), sub: Math.round(s.price * Number(NO.qty[s.id])) }));
+  const draw = () => {
+    const L = lines(); const sub = L.reduce((a, l) => a + l.sub, 0);
+    document.getElementById('nobar').innerHTML = '<div class="grow"><div class="small muted">' + L.length + ' service' + (L.length === 1 ? '' : 's') + ' · Subtotal</div><b style="font-size:20px">' + money(sub) + '</b></div><button class="btn pri big" id="cont" ' + (L.length ? '' : 'disabled') + '>Continue</button>';
+    document.getElementById('cont').onclick = () => orderSummary();
+  };
+  $app.innerHTML = '<div class="wrap" style="padding-bottom:0;min-height:100vh">' + offlineStrip() + topBar('New order', '#/') +
+    '<div class="card"><div class="lab">Customer</div><div class="row"><span class="av">' + esc(NO.customer.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(NO.customer.name) + '</b> <span class="muted">· ' + esc(NO.customer.last4) + '</span><div class="small muted">' + esc(NO.customer.phone) + '</div></div><button class="btn" id="chg">Change</button></div></div>' +
+    (groups.length ? groups.map((g) => '<div class="card tight"><div style="padding:16px 16px 8px" class="lab">' + esc(g.c.name) + ' · ' + g.list.length + '</div><div class="list">' + g.list.map((s) => '<div class="item" style="flex-wrap:wrap"><span class="ico">' + svg(iconById(s.categoryId), 24) + '</span><div class="grow"><b>' + esc(s.name) + '</b><div class="small muted">' + (s.unit === 'pcs' ? 'per pcs' : 'per kg') + ' · ' + money(s.price) + '</div></div><div class="qty"><button data-m="' + s.id + '" aria-label="Less ' + esc(s.name) + '">−</button><input data-q="' + s.id + '" inputmode="decimal" placeholder="0" aria-label="' + esc(s.name) + ' quantity in ' + s.unit + '" value="' + esc(NO.qty[s.id] || '') + '"><button data-p="' + s.id + '" aria-label="More ' + esc(s.name) + '">+</button><span class="muted small" style="width:28px">' + s.unit + '</span></div></div>').join('') + '</div></div>').join('') : '<div class="card muted">There are no services yet. ' + (can('services') ? '<a href="#/services">Add a service</a>' : 'Ask the owner to add services.') + '</div>') +
+    '<div style="flex:1"></div><div class="sticky" id="nobar" style="margin:0 -16px"></div></div>';
+  draw();
+  document.getElementById('chg').onclick = () => { NO.customer = null; render(); };
+  $app.querySelectorAll('[data-q]').forEach((i) => { i.oninput = () => { const v = i.value.replace(',', '.'); NO.qty[i.dataset.q] = v; draw(); }; });
+  const step = (id, dir) => { const s = services.find((x) => x.id === id); const cur = Number(NO.qty[id]) || 0; const st = s.unit === 'pcs' ? 1 : 0.5; let n = Math.max(0, Math.round((cur + dir * st) * 100) / 100); NO.qty[id] = n ? String(n) : ''; const inp = $app.querySelector('[data-q="' + id + '"]'); inp.value = NO.qty[id]; draw(); };
+  $app.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => step(b.dataset.m, -1); });
+  $app.querySelectorAll('[data-p]').forEach((b) => { b.onclick = () => step(b.dataset.p, 1); });
+}
+function newOrderCustomer() {
+  const draw = () => {
+    const q = NO.q.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    const list = S.data.customers.filter((c) => !q || c.name.toLowerCase().includes(q) || (qd.length >= 3 && c.phone.includes(qd)));
+    document.getElementById('clist').innerHTML = list.length ? list.slice(0, 60).map((c) => '<button class="item link" data-c="' + c.id + '"><span class="av">' + esc(c.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(c.name) + '</b> <span class="muted">· ' + esc(c.last4) + '</span><div class="small muted">' + esc(c.phone) + '</div></div></button>').join('') : '<div class="item muted">No customer found.</div>';
+    document.getElementById('clist').querySelectorAll('[data-c]').forEach((b) => { b.onclick = () => { NO.customer = S.data.customers.find((c) => c.id === b.dataset.c); NO.saveCode = null; render(); }; });
+  };
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('New order', '#/') + '<div class="card"><div class="lab">Who is this order for?</div>' + field('csrch', 'search', 'Search name or phone', NO.q) + '<button class="btn pri" id="nc">' + svg('plus') + 'New customer</button></div><div class="card tight"><div class="list" id="clist"></div></div></div>';
+  document.getElementById('csrch').oninput = (e) => { NO.q = e.target.value; draw(); };
+  document.getElementById('nc').onclick = () => customerModal(null, (c) => { NO.customer = c; render(); });
+  draw();
+}
+function orderSummary() {
+  const services = S.data.services;
+  const L = services.filter((s) => Number(NO.qty[s.id]) > 0).map((s) => { const q = Number(NO.qty[s.id]); return { s, q: s.unit === 'pcs' ? Math.round(q) : Math.round(q * 100) / 100 }; }).filter((l) => l.q > 0).map((l) => Object.assign(l, { sub: Math.round(l.s.price * l.q) }));
+  const sub = L.reduce((a, l) => a + l.sub, 0), total = Math.round(sub / 100) * 100, rnd = total - sub;
+  if (!NO.saveCode) { NO.saveCode = uid(); }
+  openModal('<h2>Order summary</h2><div class="small muted">' + esc(NO.customer.name) + ' · ' + esc(NO.customer.last4) + '</div><div>' + L.map((l) => '<div class="row" style="padding:8px 0;border-bottom:1px solid #E8EEF2"><div class="grow"><b>' + esc(l.s.name) + '</b><div class="small muted">' + qtyText(l.q) + ' ' + l.s.unit + ' × ' + money(l.s.price) + '</div></div><b>' + money(l.sub) + '</b></div>').join('') + '</div>' +
+    '<div class="kv"><span>Subtotal</span><span>' + money(sub) + '</span></div><div class="kv"><span>Rounding</span><span>' + (rnd >= 0 ? '+ ' : '- ') + money(Math.abs(rnd)) + '</span></div><div class="row between" style="border-top:1px solid #E8EEF2;padding-top:10px"><b>Total</b><b style="font-size:26px">' + money(total) + '</b></div>' +
+    '<div id="merr" class="err" hidden></div><button class="btn pri big block" id="sv">Save transaction</button><button class="btn block" id="cl">Back</button>',
+  () => {
+    document.getElementById('cl').onclick = closeModal;
+    document.getElementById('sv').onclick = () => saving('sv', async () => {
+      const d = await api('order.create', { customerId: NO.customer.id, saveCode: NO.saveCode, items: L.map((l) => ({ serviceId: l.s.id, qty: l.q })) });
+      NO = { customer: null, qty: {}, q: '', saveCode: null };
+      S.modal = null; paintModal(); go('#/order/' + encodeURIComponent(d.order.id));
+    });
+  });
+}
+
+/* ================= Order detail ================= */
+async function vOrder(r) {
+  const id = decodeURIComponent(r[1] || '');
+  const { order: o } = await api('order.get', { id });
+  const live = o.status === 'Received';
+  const pays = (m) => ({ Cash: 'Cash', 'Bank transfer': 'Bank transfer', QRIS: 'QRIS' }[m] || m);
+  const sub = o.items.reduce((a, i) => a + i.subtotal, 0), rnd = o.total - sub;
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + '<div class="row" style="flex-wrap:wrap"><a class="back" href="#/">' + svg('back') + 'Dashboard</a><h1 class="h1">Order ' + esc(o.id) + '</h1><span style="display:flex;gap:6px">' + statusPill(o) + payPill(o) + '</span></div>' +
+    '<div class="two"><div class="l"><div class="card"><div class="lab">Orders</div><div>' + o.items.map((i) => '<div class="row" style="padding:10px 0;border-bottom:1px solid #E8EEF2"><span class="ico">' + svg('shirt', 24) + '</span><div class="grow"><b>' + esc(i.name) + '</b><div class="small muted">' + qtyText(i.qty) + ' ' + unitOf(i) + ' × ' + money(i.unitPrice) + '</div></div><b>' + money(i.subtotal) + '</b></div>').join('') + '</div>' +
+    '<div class="kv"><span>Subtotal</span><span>' + money(sub) + '</span></div><div class="kv"><span>Rounding</span><span>' + (rnd >= 0 ? '+ ' : '- ') + money(Math.abs(rnd)) + '</span></div><div class="row between" style="border-top:1px solid #E8EEF2;padding-top:10px"><b>Total</b><b style="font-size:26px">' + money(o.total) + '</b></div></div>' +
+    ((live || o.note) ? '<div class="card"><div class="lab">Notes</div>' + (o.note ? '<div style="white-space:pre-wrap;word-break:break-word;line-height:1.5">' + esc(o.note) + '</div>' : '<div class="muted">No notes yet.</div>') + (live ? '<button class="btn" id="note" style="align-self:flex-start">' + svg('edit') + (o.note ? 'Edit note' : 'Add note') + '</button>' : '') + '</div>' : '') + '</div>' +
+    '<div class="r"><div class="card"><div class="lab">Actions</div><div class="row"><button class="btn blue grow" id="prt">' + svg('print') + 'Print receipt</button><a class="btn blue grow" target="_blank" rel="noopener" href="' + esc(waLink(o)) + '">' + svg('wa') + 'WhatsApp</a></div><div id="perr" class="err" hidden></div>' +
+    (live && !o.paid ? '<button class="btn pri big block" id="pay">Payment</button>' : '') + (live && o.paid ? '<button class="btn pri big block" id="done">Mark as completed</button>' : '') +
+    (live ? '<div style="border-top:1px solid #E8EEF2;padding-top:14px">' + (can('cancel') ? '<button class="btn danger block" id="cnl">Cancel order</button>' : lockedBtn('Cancel order')) + '</div>' : '') + '<div id="aerr" class="err" hidden></div></div>' +
+    '<div class="card"><div class="lab">Customer</div><div class="row"><span class="av">' + esc(o.customerName.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(o.customerName) + '</b> <span class="muted">· ' + esc(o.customerLast4) + '</span><div class="small muted">' + esc(o.customerPhone) + '</div></div></div></div>' +
+    '<div class="card"><div class="lab">Dates</div><div class="kv"><span>Received</span><span>' + esc(dateText(o.receivedAt)) + '</span></div><div class="kv"><span>Created by</span><span>' + esc(o.createdBy) + '</span></div><div class="kv"><span>Updated</span><span>' + esc(dateText(o.updatedAt)) + '</span></div>' +
+    (o.paid ? '<div class="kv"><span>Paid</span><span>' + esc(pays(o.method) + ' · ' + dateText(o.paidAt) + (o.paidBy ? ' · ' + o.paidBy : '')) + '</span></div>' : '') +
+    (o.status === 'Completed' && o.completedBy ? '<div class="kv"><span>Completed by</span><span>' + esc(o.completedBy) + '</span></div>' : '') + (o.status === 'Cancelled' && o.cancelledBy ? '<div class="kv"><span>Cancelled by</span><span>' + esc(o.cancelledBy) + '</span></div>' : '') + '</div></div></div></div>';
+  const aerr = (m) => { const e = document.getElementById('aerr'); e.textContent = m; e.hidden = !m; };
+  const reload = () => render();
+  document.getElementById('prt').onclick = async () => {
+    const pe = document.getElementById('perr'); pe.hidden = true;
+    try { await printText(receiptText(o)); } catch (e) { if (e && e.name === 'NotFoundError') { return; } pe.textContent = (e && e.message) || 'Could not print.'; pe.hidden = false; }
+  };
+  const n = document.getElementById('note'); if (n) { n.onclick = () => noteModal(o); }
+  const p = document.getElementById('pay'); if (p) { p.onclick = () => payModal(o); }
+  const d = document.getElementById('done'); if (d) { d.onclick = async () => { d.disabled = true; d.innerHTML = '<span class="spin"></span> Saving...'; try { await api('order.complete', { id: o.id, version: o.version }); reload(); } catch (e) { d.disabled = false; d.textContent = e.code === 'network' ? 'Not saved. Try again' : 'Mark as completed'; aerr(e.message); } }; }
+  const c = document.getElementById('cnl'); if (c) { c.onclick = () => cancelModal(o); }
+}
+function noteModal(o) {
+  openModal('<h2>' + (o.note ? 'Edit note' : 'Add note') + '</h2>' + field('nt', 'note', 'Note (printed on the receipt)', o.note, { area: true, rows: 4, max: 300 }) + '<div id="merr" class="err" hidden></div><button class="btn pri big block" id="ns">Save note</button><button class="btn block" id="nx">Cancel</button>', () => {
+    document.getElementById('nx').onclick = closeModal;
+    document.getElementById('ns').onclick = () => saving('ns', async () => { await api('order.note', { id: o.id, note: val('nt') }); closeModal(); render(); });
+  });
+}
+function cancelModal(o) {
+  openModal('<h2>Cancel this order?</h2><div class="muted">Order ' + esc(o.id) + ' will be marked Cancelled and left out of all reports. A cancelled order cannot be changed back. To fix a mistake, create a new order.</div><div id="merr" class="err" hidden></div><button class="btn dangerfill big block" id="cy">Yes, cancel order</button><button class="btn block" id="cn">Keep order</button>', () => {
+    document.getElementById('cn').onclick = closeModal;
+    document.getElementById('cy').onclick = () => saving('cy', async () => { await api('order.cancel', { id: o.id, version: o.version }); closeModal(); render(); });
+  });
+}
+function payModal(o) {
+  let method = 'cash', cash = 0;
+  const paint = () => {
+    const change = cash - o.total, ok = method !== 'cash' || cash >= o.total;
+    const h = '<h2>Payment</h2><div class="row between"><span class="muted">Total to pay</span><b style="font-size:26px">' + money(o.total) + '</b></div><div class="seg" role="group" aria-label="Payment method">' + [['cash', 'Cash'], ['bank', 'Bank transfer'], ['qris', 'QRIS']].map((m) => '<button data-m="' + m[0] + '" class="' + (method === m[0] ? 'on' : '') + '">' + m[1] + '</button>').join('') + '</div>' +
+      (method === 'cash' ? '<div><label class="small muted" for="cr">Cash received (IDR)</label><input id="cr" inputmode="numeric" value="' + (cash ? cash : '') + '" placeholder="0" style="width:100%;height:56px;border:1px solid #C9D5DC;border-radius:12px;padding:0 14px;font-size:22px;font-weight:700"></div><div class="chips">' + [['x', 'Exact amount'], [20000, '20.000'], [50000, '50.000'], [100000, '100.000'], ['c', 'Clear']].map((b) => '<button class="chip" data-a="' + b[0] + '">' + b[1] + '</button>').join('') + '</div><div class="row between" style="padding:10px 12px;border-radius:12px;background:' + (cash >= o.total ? '#DCF4E5' : '#F3F6F8') + '"><span>Change</span><b style="font-size:20px">' + (cash >= o.total ? money(change) : '—') + '</b></div>' : '<div class="muted">Confirm after you have received the money.</div>') +
+      '<div id="merr" class="err" hidden></div><button class="btn pri big block" id="ap" ' + (ok ? '' : 'disabled') + '>Approve payment</button><button class="btn block" id="px">Cancel</button>';
+    const m = document.querySelector('#modal-host .modal'); m.innerHTML = h;
+    m.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => { method = b.dataset.m; paint(); }; });
+    m.querySelectorAll('[data-a]').forEach((b) => { b.onclick = () => { const a = b.dataset.a; cash = a === 'x' ? o.total : (a === 'c' ? 0 : cash + Number(a)); paint(); }; });
+    const cr = m.querySelector('#cr'); if (cr) { cr.oninput = () => { cash = Number(cr.value.replace(/\D/g, '')) || 0; const ch = m.querySelector('.row.between:last-of-type'); paintChange(m); }; }
+    m.querySelector('#px').onclick = closeModal;
+    m.querySelector('#ap').onclick = () => saving('ap', async () => { await api('order.pay', { id: o.id, version: o.version, method }); closeModal(); render(); });
+  };
+  const paintChange = (m) => { const ap = m.querySelector('#ap'); ap.disabled = cash < o.total; const rows = m.querySelectorAll('.row.between'); const last = rows[rows.length - 1]; last.style.background = cash >= o.total ? '#DCF4E5' : '#F3F6F8'; last.querySelector('b').textContent = cash >= o.total ? money(cash - o.total) : '—'; };
+  openModal('', () => paint());
+}
+
+/* ================= Find order ================= */
+let FO = { q: '', f: 'all' };
+async function vOrders() {
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Find order', '#/') + '<div class="card">' + field('fq', 'search', 'Customer name, order number or phone', FO.q) + '<div class="chips">' + [['all', 'All'], ['unpaid', 'Unpaid'], ['received', 'Received'], ['completed', 'Completed'], ['cancelled', 'Cancelled']].map((c) => '<button class="chip' + (FO.f === c[0] ? ' on' : '') + '" data-f="' + c[0] + '">' + c[1] + '</button>').join('') + '</div></div><div class="card tight"><div class="list" id="ol"><div class="item muted"><span class="spin"></span> Loading...</div></div></div><div id="more" class="muted small" hidden>Showing the latest 100. Type in the search box to narrow down.</div></div>';
+  let timer = null, seq = 0;
+  const load = async () => {
+    const my = ++seq;
+    try { const d = await api('orders', { q: FO.q, filter: FO.f }); const ol = document.getElementById('ol'); if (my !== seq || !ol) { return; } ol.innerHTML = d.orders.length ? d.orders.map(orderRow).join('') : '<div class="item muted">No orders found.</div>'; document.getElementById('more').hidden = !d.more; } catch (e) { if (my === seq && S.token && document.getElementById('ol')) { document.getElementById('ol').innerHTML = '<div class="item err">' + esc(e.message) + '</div>'; } }
+  };
+  document.getElementById('fq').oninput = (e) => { FO.q = e.target.value; clearTimeout(timer); timer = setTimeout(load, 300); };
+  $app.querySelectorAll('[data-f]').forEach((b) => { b.onclick = () => { FO.f = b.dataset.f; $app.querySelectorAll('[data-f]').forEach((x) => x.classList.toggle('on', x === b)); load(); }; });
+  load();
+}
+
+/* ================= Customers ================= */
+let CQ = '';
+async function vCustomers() {
+  const draw = () => {
+    const q = CQ.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    const list = S.data.customers.filter((c) => !q || c.name.toLowerCase().includes(q) || (qd.length >= 3 && c.phone.includes(qd)));
+    document.getElementById('cl').innerHTML = list.length ? list.slice(0, 200).map((c) => '<div class="item"><span class="av">' + esc(c.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(c.name) + '</b> <span class="muted">· ' + esc(c.last4) + '</span><div class="small muted">' + esc(c.phone) + '</div></div><button class="iconbtn" data-e="' + c.id + '" aria-label="Edit ' + esc(c.name) + '">' + svg('edit') + '</button></div>').join('') : '<div class="item muted">No customer found.</div>';
+    document.getElementById('cl').querySelectorAll('[data-e]').forEach((b) => { b.onclick = () => customerModal(S.data.customers.find((c) => c.id === b.dataset.e), () => render()); });
+  };
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Customers', '#/', '<button class="btn pri" id="add">' + svg('plus') + 'Add customer</button>') + '<div class="card">' + field('cq', 'search', 'Search name or phone', CQ) + '</div><div class="card tight"><div class="list" id="cl"></div></div></div>';
+  document.getElementById('cq').oninput = (e) => { CQ = e.target.value; draw(); };
+  document.getElementById('add').onclick = () => customerModal(null, () => render());
+  draw();
+}
+function customerModal(c, done) {
+  openModal('<h2>' + (c ? 'Edit customer' : 'New customer') + '</h2>' + field('cn', 'user', 'Name', c && c.name) + field('cp', 'phone', 'Phone (WhatsApp number)', c && c.phone, { type: 'tel', mode: 'tel' }) + field('ce', 'mail', 'Email (optional)', c && c.email, { type: 'email' }) + field('ca', 'pin', 'Address (optional)', c && c.address) + '<div id="merr" class="err" hidden></div><button class="btn pri big block" id="cs">Save</button><button class="btn block" id="cx">Cancel</button>', () => {
+    document.getElementById('cx').onclick = closeModal;
+    document.getElementById('cs').onclick = () => saving('cs', async () => {
+      const d = await api('customer.save', { id: c ? c.id : undefined, name: val('cn'), phone: val('cp'), email: val('ce'), address: val('ca') });
+      await reloadData(); closeModal(); done(d.customer);
+    });
+  });
+}
+
+/* ================= Services ================= */
+async function vServices() {
+  const cats = S.data.categories.filter((c) => c.type === 'service');
+  const groups = cats.map((c) => ({ c, list: S.data.services.filter((s) => s.categoryId === c.id) })).filter((g) => g.list.length);
+  const ed = can('services');
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Services', '#/', ed ? '<button class="btn pri" id="add">' + svg('plus') + 'Add service</button>' : '<button class="btn locked" disabled>' + svg('lock') + 'Owner only</button>') +
+    (groups.length ? groups.map((g) => '<div class="card tight"><div class="lab" style="padding:16px 16px 8px">' + esc(g.c.name) + ' · ' + g.list.length + '</div><div class="list">' + g.list.map((s) => '<div class="item"><span class="ico">' + svg(g.c.icon, 24) + '</span><div class="grow"><b>' + esc(s.name) + '</b><div class="small muted">' + (s.unit === 'pcs' ? 'per pcs' : 'per kg') + '</div></div><b>' + money(s.price) + '</b>' + (ed ? '<button class="iconbtn" data-e="' + s.id + '" aria-label="Edit ' + esc(s.name) + '">' + svg('edit') + '</button>' : '') + '</div>').join('') + '</div></div>').join('') : '<div class="card muted">No services yet.</div>') + '</div>';
+  const a = document.getElementById('add'); if (a && !a.disabled) { a.onclick = () => serviceModal(null); }
+  $app.querySelectorAll('[data-e]').forEach((b) => { b.onclick = () => serviceModal(S.data.services.find((s) => s.id === b.dataset.e)); });
+}
+function catSelect(id, type, selected) {
+  const list = S.data.categories.filter((c) => c.type === type);
+  return '<div class="field"><span class="ic">' + svg('cat') + '</span><select id="' + id + '" aria-label="Category">' + '<option value="" disabled' + (selected ? '' : ' selected') + '>Category</option>' + list.map((c) => '<option value="' + c.id + '"' + (c.id === selected ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + (can('services') ? '<option value="__new">+ New category</option>' : '') + '</select></div>';
+}
+function wireCatSelect(id, type, snap, reopen) {
+  const sel = document.getElementById(id);
+  // The category pop-up replaces this form, so remember what was typed first.
+  sel.onchange = () => { if (sel.value === '__new') { sel.value = ''; const kept = snap(); categoryModal(null, type, (newId) => reopen(kept, newId)); } };
+}
+function serviceModal(s, preset) {
+  let unit = (preset && preset.unit) || (s ? s.unit : 'kg');
+  const keep = preset || {};
+  openModal('<h2>' + (s ? 'Edit service' : 'New service') + '</h2>' + field('sn', 'tag', 'Service name', keep.name !== undefined ? keep.name : (s && s.name)) + field('spr', 'money', 'Price (IDR)', keep.price !== undefined ? keep.price : (s && s.price), { mode: 'numeric' }) + catSelect('sc', 'service', keep.cat || (s && s.categoryId)) + '<div class="seg" role="group" aria-label="Charged per"><button data-u="kg">Per kg</button><button data-u="pcs">Per pcs</button></div><div id="merr" class="err" hidden></div><button class="btn pri big block" id="ss">Save</button>' + (s ? (can('owner') ? '<button class="btn danger block" id="sd">' + svg('trash') + 'Delete service</button>' : lockedBtn('Delete service')) : '') + '<button class="btn block" id="sx">Cancel</button>', () => {
+    const segs = document.querySelectorAll('[data-u]'); const paintU = () => segs.forEach((b) => b.classList.toggle('on', b.dataset.u === unit)); paintU(); segs.forEach((b) => { b.onclick = () => { unit = b.dataset.u; paintU(); }; });
+    wireCatSelect('sc', 'service', () => ({ name: val('sn'), price: val('spr'), unit }), (k, newId) => serviceModal(s, Object.assign(k, { cat: newId || val('sc') })));
+    document.getElementById('sx').onclick = closeModal;
+    document.getElementById('ss').onclick = () => saving('ss', async () => { const d = await api('service.save', { id: s ? s.id : undefined, name: val('sn'), price: val('spr').replace(/\D/g, ''), unit, categoryId: val('sc') }); S.data.services = d.services; closeModal(); render(); });
+    const sd = document.getElementById('sd'); if (sd) { sd.onclick = () => confirmModal('Delete this service?', 'Old orders keep their own copy of the name and price. This cannot be undone.', 'Yes, delete', async () => { const d = await api('service.delete', { id: s.id }); S.data.services = d.services; closeModal(); render(); }); }
+  });
+  if (preset && preset.cat) { /* category was just created */ }
+}
+function confirmModal(title, text, yes, fn) {
+  openModal('<h2>' + esc(title) + '</h2><div class="muted">' + esc(text) + '</div><div id="merr" class="err" hidden></div><button class="btn dangerfill big block" id="cy">' + esc(yes) + '</button><button class="btn block" id="cn">Keep it</button>', () => {
+    document.getElementById('cn').onclick = closeModal;
+    document.getElementById('cy').onclick = () => saving('cy', fn);
+  });
+}
+
+/* ================= Categories ================= */
+async function vCategories() {
+  const ed = can('services');
+  const used = {};
+  S.data.services.forEach((s) => { used[s.categoryId] = true; });
+  let exp = []; try { if (can('expenses')) { exp = (await api('expense.list')).expenses; } } catch (e) { /* ignore */ }
+  exp.forEach((x) => { used[x.categoryId] = true; });
+  const part = (title, type) => '<div class="card tight"><div class="lab" style="padding:16px 16px 8px">' + title + '</div><div class="list">' + S.data.categories.filter((c) => c.type === type).map((c) => '<div class="item"><span class="ico">' + svg(c.icon, 24) + '</span><div class="grow"><b>' + esc(c.name) + '</b></div>' + (ed ? '<button class="iconbtn" data-e="' + c.id + '" aria-label="Edit ' + esc(c.name) + '">' + svg('edit') + '</button>' : '') + '</div>').join('') + '</div></div>';
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Categories', can('owner') ? '#/settings' : '#/services', ed ? '<button class="btn pri" id="add">' + svg('plus') + 'New category</button>' : '') + part('Service categories', 'service') + part('Expense categories', 'expense') + '</div>';
+  const a = document.getElementById('add'); if (a) { a.onclick = () => categoryModal(null, 'service', () => render()); }
+  $app.querySelectorAll('[data-e]').forEach((b) => { b.onclick = () => categoryModal(S.data.categories.find((c) => c.id === b.dataset.e), null, () => render(), !!used[b.dataset.e] || !can('expenses')); });
+}
+function categoryModal(c, presetType, done, inUse) {
+  let type = c ? c.type : (presetType || 'service'), icon = c ? c.icon : 'tag';
+  openModal('<h2>' + (c ? 'Edit category' : 'New category') + '</h2>' + field('cname', 'tag', 'Category name', c && c.name) + '<div class="seg" role="group" aria-label="Type"><button data-t="service" ' + (inUse ? 'disabled' : '') + '>Service</button><button data-t="expense" ' + (inUse ? 'disabled' : '') + '>Expense</button></div><div><div class="small muted" style="margin-bottom:6px">Icon</div><div class="chips" id="icons"></div></div><div id="merr" class="err" hidden></div><button class="btn pri big block" id="cs">Save</button>' + (c ? (can('owner') ? (inUse ? '<div class="small muted">This category is in use, so it cannot be deleted.</div>' : '<button class="btn danger block" id="cd">' + svg('trash') + 'Delete category</button>') : lockedBtn('Delete category')) : '') + '<button class="btn block" id="cx">Cancel</button>', () => {
+    const paint = () => { document.querySelectorAll('[data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === type)); document.getElementById('icons').innerHTML = ICON_CHOICES.map((i) => '<button class="iconbtn" data-i="' + i + '" style="' + (i === icon ? 'background:var(--dark);color:#fff' : '') + '" aria-label="' + i + '" aria-pressed="' + (i === icon) + '">' + svg(i) + '</button>').join(''); document.querySelectorAll('[data-i]').forEach((b) => { b.onclick = () => { icon = b.dataset.i; paint(); }; }); };
+    document.querySelectorAll('[data-t]').forEach((b) => { b.onclick = () => { type = b.dataset.t; paint(); }; }); paint();
+    document.getElementById('cx').onclick = closeModal;
+    document.getElementById('cs').onclick = () => saving('cs', async () => { const d = await api('category.save', { id: c ? c.id : undefined, name: val('cname'), type, icon }); S.data.categories = d.categories; closeModal(); done(d.created); });
+    const cd = document.getElementById('cd'); if (cd) { cd.onclick = () => confirmModal('Delete this category?', 'This cannot be undone.', 'Yes, delete', async () => { const d = await api('category.delete', { id: c.id }); S.data.categories = d.categories; closeModal(); done(); }); }
+  });
+}
+
+/* ================= Expenses ================= */
+async function vExpenses() {
+  if (!can('expenses')) { return $app.innerHTML = '<div class="wrap">' + topBar('Expenses', '#/') + '<div class="card">' + lockedBtn('Expenses') + '</div></div>'; }
+  const { expenses } = await api('expense.list');
+  const ym = todayStr().slice(0, 7);
+  const month = expenses.filter((x) => x.at.startsWith(ym)).reduce((a, x) => a + x.price, 0);
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Expenses', '#/', '<button class="btn pri" id="add">' + svg('plus') + 'Add expense</button>') + '<div class="kpi"><span class="small muted" style="font-weight:600">Total this month</span><b style="color:var(--danger)">' + money(month) + '</b></div><div class="card tight"><div class="list">' + (expenses.length ? expenses.map((x) => '<div class="item"><span class="ico">' + svg(iconById(x.categoryId), 24) + '</span><div class="grow"><b>' + esc(x.name) + '</b><div class="small muted">' + esc(catName(x.categoryId)) + ' · ' + esc(dateText(x.at.slice(0, 10))) + '</div></div><b style="color:var(--danger)">' + money(x.price) + '</b><button class="iconbtn" data-e="' + x.id + '" aria-label="Edit ' + esc(x.name) + '">' + svg('edit') + '</button></div>').join('') : '<div class="item muted">No expenses yet.</div>') + '</div></div></div>';
+  document.getElementById('add').onclick = () => expenseModal(null);
+  $app.querySelectorAll('[data-e]').forEach((b) => { b.onclick = () => expenseModal(expenses.find((x) => x.id === b.dataset.e)); });
+}
+function expenseModal(x, preset) {
+  const keep = preset || {};
+  openModal('<h2>' + (x ? 'Edit expense' : 'New expense') + '</h2>' + catSelect('xc', 'expense', keep.cat || (x && x.categoryId)) + field('xd', 'cal', 'Date', keep.date || (x ? x.at.slice(0, 10) : todayStr()), { type: 'date' }) + field('xn', 'tag', 'Name', keep.name !== undefined ? keep.name : (x && x.name)) + field('xp', 'money', 'Price (IDR)', keep.price !== undefined ? keep.price : (x && x.price), { mode: 'numeric' }) + '<div id="merr" class="err" hidden></div><button class="btn pri big block" id="xs">Save</button>' + (x ? (can('owner') ? '<button class="btn danger block" id="xdl">' + svg('trash') + 'Delete expense</button>' : lockedBtn('Delete expense')) : '') + '<button class="btn block" id="xx">Cancel</button>', () => {
+    wireCatSelect('xc', 'expense', () => ({ date: val('xd'), name: val('xn'), price: val('xp') }), (k, newId) => expenseModal(x, Object.assign(k, { cat: newId })));
+    document.getElementById('xx').onclick = closeModal;
+    document.getElementById('xs').onclick = () => saving('xs', async () => { await api('expense.save', { id: x ? x.id : undefined, categoryId: val('xc'), date: val('xd'), name: val('xn'), price: val('xp').replace(/\D/g, '') }); closeModal(); render(); });
+    const d = document.getElementById('xdl'); if (d) { d.onclick = () => confirmModal('Delete this expense?', 'This cannot be undone.', 'Yes, delete', async () => { await api('expense.delete', { id: x.id }); closeModal(); render(); }); }
+  });
+}
+
+/* ================= Reports ================= */
+let RP = { period: 'today', from: '', to: '' };
+async function vReports() {
+  if (!can('reports')) { return $app.innerHTML = '<div class="wrap">' + topBar('Reports', '#/') + '<div class="card">' + lockedBtn('Reports') + '</div></div>'; }
+  const draw = (r, err) => {
+    const rows = (a, empty) => a.length ? a.map((x) => '<div class="kv"><span>' + esc(x.name) + '</span><span>' + money(x.amount) + '</span></div>').join('') : '<div class="muted small">' + empty + '</div>';
+    const keys = r ? Object.keys(r.buckets).sort() : []; const mx = r ? Math.max.apply(null, keys.map((k) => r.buckets[k]).concat([1])) : 1;
+    const chart = !r ? '' : keys.length ? '<div class="bars" role="img" aria-label="Sales chart">' + keys.map((k) => '<div class="bar" title="' + esc(k) + ': ' + money(r.buckets[k]) + '"><i style="height:' + Math.max(2, Math.round(r.buckets[k] / mx * 110)) + 'px"></i><span>' + (r.bucketKind === 'hour' ? k + 'h' : k.slice(8)) + '</span></div>').join('') + '</div>' : '<div class="muted small">No sales in this period.</div>';
+    $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Reports', '#/', '<button class="btn" id="csv">' + svg('down') + 'Export CSV</button>') + '<div class="chips">' + [['today', 'Today'], ['week', 'This week'], ['month', 'This month'], ['custom', 'Custom']].map((p) => '<button class="chip' + (RP.period === p[0] ? ' on' : '') + '" data-p="' + p[0] + '">' + p[1] + '</button>').join('') + '</div>' +
+      (RP.period === 'custom' ? '<div class="card"><div class="row" style="flex-wrap:wrap"><div class="grow" style="min-width:150px">' + field('rf', 'cal', 'From', RP.from, { type: 'date' }) + '</div><div class="grow" style="min-width:150px">' + field('rt', 'cal', 'To', RP.to, { type: 'date' }) + '</div></div>' + (err ? '<div class="err">' + esc(err) + '</div>' : '') + '</div>' : '') +
+      (r ? '<div class="muted small">' + esc(dateText(r.range[0])) + (r.range[0] === r.range[1] ? '' : ' to ' + esc(dateText(r.range[1]))) + '</div><div class="kpis"><div class="kpi"><span class="small muted" style="font-weight:600">Sales</span><b>' + money(r.sales) + '</b></div><div class="kpi"><span class="small muted" style="font-weight:600">Expenses</span><b>' + money(r.expenses) + '</b></div><div class="kpi"><span class="small muted" style="font-weight:600">Profit</span><b style="color:' + (r.profit < 0 ? 'var(--danger)' : 'inherit') + '">' + money(r.profit) + '</b><span class="small muted">Sales minus expenses</span></div><div class="kpi"><span class="small muted" style="font-weight:600">Orders</span><b>' + r.orders + '</b><span class="small muted">Average ' + money(r.averageOrder) + '</span></div></div>' +
+      '<div class="card"><div class="lab">' + (r.bucketKind === 'hour' ? 'Sales by hour' : 'Sales by day') + '</div>' + chart + '</div>' +
+      '<div class="two"><div class="l"><div class="card"><div class="lab">Best-selling services</div>' + rows(r.services, 'No sales yet.') + '</div><div class="card"><div class="lab">Cancelled orders</div><div class="small muted" style="margin-top:-8px">Not counted in any number above</div><div class="kv"><span>Orders cancelled</span><span>' + r.cancelledCount + '</span></div><div class="kv"><span>Value of cancelled orders</span><span>' + money(r.cancelledValue) + '</span></div>' + r.cancelled.map((c) => '<a class="kv" href="#/order/' + encodeURIComponent(c.id) + '" style="text-decoration:none"><span>' + esc(c.customerName) + '<br><span class="small">' + esc(c.id) + ' · ' + esc(dateText(c.receivedAt.slice(0, 10))) + '</span></span><span>' + money(c.total) + '</span></a>').join('') + '</div></div>' +
+      '<div class="r"><div class="card"><div class="lab">Payments</div><div class="kv"><span>Paid</span><span>' + money(r.paid) + '</span></div><div class="kv"><span>Unpaid</span><span>' + money(r.unpaid) + '</span></div></div><div class="card"><div class="lab">By payment method</div>' + rows(r.byMethod, 'No payments yet.') + '</div><div class="card"><div class="lab">Expenses by category</div>' + rows(r.expensesByCategory, 'No expenses.') + '</div></div></div>' : '<div class="card muted"><span class="spin"></span> Loading...</div>') + '</div>';
+    $app.querySelectorAll('[data-p]').forEach((b) => { b.onclick = () => { RP.period = b.dataset.p; if (RP.period === 'custom' && !RP.from) { RP.from = RP.to = todayStr(); } vReports(); }; });
+    ['rf', 'rt'].forEach((id) => { const e = document.getElementById(id); if (e) { e.onchange = () => { RP.from = val('rf'); RP.to = val('rt'); vReports(); }; } });
+    const c = document.getElementById('csv'); if (c && r) { c.onclick = () => downloadCsv(r); }
+  };
+  draw(null);
+  try { draw(await api('report', { period: RP.period === 'custom' ? 'custom' : RP.period, from: RP.from, to: RP.to })); } catch (e) { if (e.code === 'invalid') { draw(null, e.message); } else if (S.token) { throw e; } }
+}
+function downloadCsv(r) {
+  const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const head = ['Order', 'Received at', 'Customer', 'Items', 'Total (IDR)', 'Payment', 'Method', 'Status', 'Created by'];
+  const lines = [head.map(q).join(',')].concat(r.rows.map((x) => [x.id, x.receivedAt, x.customer, x.items, x.total, x.payment, x.method, x.status, x.createdBy].map(q).join(',')));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'orders-' + r.range[0] + '-to-' + r.range[1] + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ================= Settings ================= */
+async function vSettings() {
+  if (!can('owner')) { return $app.innerHTML = '<div class="wrap">' + topBar('Settings', '#/') + '<div class="card">' + lockedBtn('Settings') + '</div></div>'; }
+  const st = S.data.settings;
+  const paper = lsGet('paper', '58'), mode = printerMode();
+  const sample = { id: (st.order_prefix || 'LD') + '-261027-0412', receivedAt: '2026-10-27 16:05', customerName: 'Rina Kusuma', customerLast4: '3344', items: [{ name: 'Wash + Iron', qty: 4.2, unit: 'kg', unitPrice: 7000, subtotal: 29400 }], total: 29400, paid: true, status: 'Received', note: 'Stain on the white shirt' };
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Settings', '#/') +
+    '<div class="card"><div class="row between"><span class="lab">Printer</span><span class="small muted">Saved on this device only</span></div><div class="row"><span class="ico">' + svg('print', 24) + '</span><div class="grow"><b>' + (PRINTER.dev ? esc(PRINTER.dev.name || 'Printer') : 'No printer connected') + '</b><div class="small muted">' + (PRINTER.dev ? 'Connected' : 'Switch the printer on, then tap Connect.') + '</div></div></div><div class="seg" role="group" aria-label="How to print"><button data-m="ble" class="' + (mode === 'ble' ? 'on' : '') + '">Bluetooth (Chrome)</button><button data-m="rawbt" class="' + (mode === 'rawbt' ? 'on' : '') + '">RawBT app</button></div><div class="seg" role="group" aria-label="Paper width"><button data-w="58" class="' + (paper === '58' ? 'on' : '') + '">58 mm</button><button data-w="80" class="' + (paper === '80' ? 'on' : '') + '">80 mm</button></div><div class="row" style="flex-wrap:wrap"><button class="btn pri" id="pc">' + svg('bt') + 'Connect printer</button><button class="btn" id="pt">Print test receipt</button></div><div id="pmsg" class="small"></div><div class="small muted">Chrome on Android can connect to Bluetooth printers directly. If your printer does not show up, switch to the RawBT app: install it, pair the printer there, and the app will send receipts through it.</div></div>' +
+    '<div class="card"><div class="row between"><span class="lab">ID prefixes</span><span class="small muted">Shared by all devices</span></div><div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">' + [['order_prefix', 'Orders'], ['customer_prefix', 'Customers'], ['service_prefix', 'Services'], ['category_prefix', 'Categories'], ['expense_prefix', 'Expenses']].map((p) => field(p[0], 'tag', p[1], st[p[0]], { max: 6 })).join('') + '</div><div class="small muted">Letters and numbers only, up to 6. A change only affects new records. Old order numbers and printed receipts stay the same.</div></div>' +
+    '<div class="two"><div class="l"><a class="card" href="#/categories" style="text-decoration:none"><div class="row"><span class="ico">' + svg('cat', 24) + '</span><div class="grow"><b>Categories</b><div class="small muted">For services and expenses</div></div>' + svg('back', 20).replace('<svg', '<svg style="transform:rotate(180deg)"') + '</div></a><a class="card" href="#/users" style="text-decoration:none"><div class="row"><span class="ico">' + svg('users', 24) + '</span><div class="grow"><b>Users and access</b><div class="small muted">PINs and what staff can do</div></div>' + svg('back', 20).replace('<svg', '<svg style="transform:rotate(180deg)"') + '</div></a>' +
+    '<div class="card"><div class="row between"><span class="lab">Receipt text</span><span class="small muted">Shared by all devices</span></div>' + field('shop_name', 'tag', 'Shop name', st.shop_name) + field('shop_address', 'pin', 'Address and phone (optional)', st.shop_address) + field('header_text', 'note', 'Header text (optional)', st.header_text, { max: 120 }) + field('receipt_footer', 'note', 'Footer text (optional)', st.receipt_footer, { area: true, rows: 3, max: 120 }) + '<div class="small muted">Up to 120 characters. About 32 characters fit on one line on 58 mm paper.</div></div></div>' +
+    '<div class="r"><div class="card"><div class="row between"><span class="lab">Receipt preview</span><span class="small muted">' + paper + ' mm paper</span></div><div class="rec" id="prev"></div><div class="small muted">Sample order shown. The preview updates as you type.</div></div><button class="btn pri big block" id="save">Save settings</button><div id="smsg" role="status"></div></div></div></div>';
+  const prev = () => { const cur = Object.assign({}, st); ['shop_name', 'shop_address', 'header_text', 'receipt_footer', 'order_prefix'].forEach((k) => { cur[k] = val(k); }); sample.id = (cur.order_prefix || 'LD').toUpperCase() + '-261027-0412'; document.getElementById('prev').textContent = receiptLines(sample, cur).join('\n'); };
+  ['shop_name', 'shop_address', 'header_text', 'receipt_footer', 'order_prefix'].forEach((k) => { document.getElementById(k).oninput = prev; }); prev();
+  $app.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => { lsSet('printer_mode', b.dataset.m); vSettings(); }; });
+  $app.querySelectorAll('[data-w]').forEach((b) => { b.onclick = () => { lsSet('paper', b.dataset.w); vSettings(); }; });
+  const msg = (t, bad) => { const e = document.getElementById('pmsg'); e.textContent = t; e.className = 'small ' + (bad ? 'err' : ''); };
+  document.getElementById('pc').onclick = async () => { if (printerMode() === 'rawbt') { return msg('RawBT is selected. Nothing to connect here: pair the printer inside the RawBT app.'); } try { const n = await bleConnect(); msg('Connected to ' + n + '.'); vSettings(); } catch (e) { if (e && e.name === 'NotFoundError') { return msg('No printer was chosen.'); } msg((e && e.message) || 'Could not connect.', true); } };
+  document.getElementById('pt').onclick = async () => { try { await printText(receiptLines(sample, Object.assign({}, st, { shop_name: val('shop_name'), shop_address: val('shop_address'), header_text: val('header_text'), receipt_footer: val('receipt_footer') })).join('\n')); msg('Test receipt sent to the printer.'); } catch (e) { if (e && e.name === 'NotFoundError') { return msg('No printer was chosen.'); } msg((e && e.message) || 'Could not print.', true); } };
+  document.getElementById('save').onclick = async () => {
+    const b = document.getElementById('save'), m = document.getElementById('smsg'); b.disabled = true; b.innerHTML = '<span class="spin"></span> Saving...'; m.innerHTML = '';
+    const values = {}; ['shop_name', 'shop_address', 'header_text', 'receipt_footer', 'order_prefix', 'customer_prefix', 'service_prefix', 'category_prefix', 'expense_prefix'].forEach((k) => { values[k] = val(k); });
+    try { const d = await api('settings.save', { values }); S.data.settings = d.settings; b.disabled = false; b.textContent = 'Save settings'; m.innerHTML = '<div class="strip ok">Settings saved</div>'; vSettingsKeepMsg = true; prev(); } catch (e) { b.disabled = false; b.textContent = e.code === 'network' ? 'Not saved. Try again' : 'Save settings'; if (S.token) { m.innerHTML = '<div class="strip warn">' + esc(e.message) + '</div>'; } }
+  };
+}
+let vSettingsKeepMsg = false;
+
+/* ================= Users ================= */
+async function vUsers() {
+  if (!can('owner')) { return $app.innerHTML = '<div class="wrap">' + topBar('Users and access', '#/') + '<div class="card">' + lockedBtn('Users') + '</div></div>'; }
+  const st = S.data.settings, users = S.data.users || [];
+  const perms = [['perm_reports', 'See Reports', 'Sales, profit and cancelled orders'], ['perm_expenses', 'See Expenses', 'The Expenses list and total'], ['perm_services', 'Add and edit services and categories', 'Prices and category names'], ['perm_cancel', 'Cancel an order', 'Staff cannot cancel orders unless you turn this on']];
+  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('Users and access', '#/settings', '<button class="btn pri" id="add">' + svg('plus') + 'New user</button>') + '<div class="two"><div class="l"><div class="card tight"><div class="lab" style="padding:16px 16px 8px">Users</div><div class="list">' + users.map((u) => '<div class="item"><span class="av">' + esc(u.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(u.name) + '</b> <span class="pill p-comp">' + (u.role === 'owner' ? 'Owner' : 'Staff') + '</span><div class="small muted">' + (u.active ? 'Can sign in' : 'Turned off, cannot sign in') + '</div></div><button class="iconbtn" data-e="' + u.id + '" aria-label="Edit ' + esc(u.name) + '">' + svg('edit') + '</button></div>').join('') + '</div></div></div>' +
+    '<div class="r"><div class="card"><div class="lab">What staff can do</div><div class="small muted">Owners can always do everything. Staff can always create orders, take payments, mark orders as completed, add notes and manage customers.</div>' + perms.map((p) => '<div class="row" style="min-height:60px;border-top:1px solid #E8EEF2"><span class="grow"><b style="font-size:15px">' + p[1] + '</b><br><span class="small muted">' + p[2] + '</span></span><button class="sw" role="switch" data-k="' + p[0] + '" aria-checked="' + (st[p[0]] === 'yes') + '" aria-label="' + p[1] + ' for staff"><i></i></button></div>').join('') + '<div id="pmsg" class="small" role="status"></div><div class="small muted">Only owners can open Settings and manage users.</div></div></div></div></div>';
+  document.getElementById('add').onclick = () => userModal(null);
+  $app.querySelectorAll('[data-e]').forEach((b) => { b.onclick = () => userModal(users.find((u) => u.id === b.dataset.e)); });
+  $app.querySelectorAll('.sw').forEach((b) => { b.onclick = async () => {
+    const on = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(on)); const m = document.getElementById('pmsg'); m.className = 'small'; m.textContent = 'Saving...';
+    try { const d = await api('settings.save', { values: { [b.dataset.k]: on } }); S.data.settings = d.settings; m.textContent = 'Saved'; } catch (e) { b.setAttribute('aria-checked', String(!on)); m.className = 'small err'; m.textContent = e.code === 'network' ? 'Not saved. Try again' : e.message; }
+  }; });
+}
+function userModal(u) {
+  let role = u ? u.role : 'staff', active = u ? u.active : true;
+  openModal('<h2>' + (u ? 'Edit user' : 'New user') + '</h2>' + field('un', 'user', 'Name', u && u.name) + field('up', 'lock', u ? 'New PIN (leave empty to keep)' : '6-digit PIN', '', { type: 'password', mode: 'numeric', max: 6 }) + '<div class="seg" role="group" aria-label="Role"><button data-r="staff">Staff</button><button data-r="owner">Owner</button></div><div class="row"><span class="grow"><b>Active</b><br><span class="small muted">Turn off instead of deleting, so old orders keep the name.</span></span><button class="sw" id="ua" role="switch" aria-label="Active"><i></i></button></div><div id="merr" class="err" hidden></div><button class="btn pri big block" id="us">Save</button><button class="btn block" id="ux">Cancel</button>', () => {
+    const paint = () => { document.querySelectorAll('[data-r]').forEach((b) => b.classList.toggle('on', b.dataset.r === role)); document.getElementById('ua').setAttribute('aria-checked', String(active)); };
+    document.querySelectorAll('[data-r]').forEach((b) => { b.onclick = () => { role = b.dataset.r; paint(); }; });
+    document.getElementById('ua').onclick = () => { active = !active; paint(); }; paint();
+    document.getElementById('ux').onclick = closeModal;
+    document.getElementById('us').onclick = () => saving('us', async () => { const d = await api('user.save', { id: u ? u.id : undefined, name: val('un'), pin: val('up'), role, active }); S.data.users = d.users; closeModal(); render(); });
+  });
+}
+
+/* ---------- start ---------- */
+if ('serviceWorker' in navigator && false) { /* offline queue is not part of this version */ }
+render();
+</script>
+</body>
+</html>
