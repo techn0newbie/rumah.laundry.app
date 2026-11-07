@@ -399,7 +399,6 @@ function orderRow(o) {
 /* ================= New order ================= */
 let NO = { customer: null, qty: {}, q: '', saveCode: null };
 async function vNewOrder() {
-  if (!NO.customer) { return newOrderCustomer(); }
   const services = S.data.services.filter((s) => s.active);
   const cats = S.data.categories.filter((c) => c.type === 'service');
   const groups = cats.map((c) => ({ c, list: services.filter((s) => s.categoryId === c.id) })).filter((g) => g.list.length);
@@ -407,30 +406,34 @@ async function vNewOrder() {
   const draw = () => {
     const L = lines(); const sub = L.reduce((a, l) => a + l.sub, 0);
     document.getElementById('nobar').innerHTML = '<div class="grow"><div class="small muted">' + L.length + ' service' + (L.length === 1 ? '' : 's') + ' · Subtotal</div><b style="font-size:20px">' + money(sub) + '</b></div><button class="btn pri big" id="cont" ' + (L.length ? '' : 'disabled') + '>Continue</button>';
-    document.getElementById('cont').onclick = () => orderSummary();
+    document.getElementById('cont').onclick = () => { if (NO.customer) { orderSummary(); } else { customerPicker(() => { render(); orderSummary(); }); } };
   };
   $app.innerHTML = '<div class="wrap" style="padding-bottom:0;min-height:100vh">' + offlineStrip() + topBar('New order', '#/') +
-    '<div class="card"><div class="lab">Customer</div><div class="row"><span class="av">' + esc(NO.customer.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(NO.customer.name) + '</b> <span class="muted">· ' + esc(NO.customer.last4) + '</span><div class="small muted">' + esc(NO.customer.phone) + '</div></div><button class="btn" id="chg">Change</button></div></div>' +
-    (groups.length ? groups.map((g) => '<div class="card tight"><div style="padding:16px 16px 8px" class="lab">' + esc(g.c.name) + ' · ' + g.list.length + '</div><div class="list">' + g.list.map((s) => '<div class="item" style="flex-wrap:wrap"><span class="ico">' + svg(iconById(s.categoryId), 24) + '</span><div class="grow"><b>' + esc(s.name) + '</b><div class="small muted">' + (s.unit === 'pcs' ? 'per pcs' : 'per kg') + ' · ' + money(s.price) + '</div></div><div class="qty"><button data-m="' + s.id + '" aria-label="Less ' + esc(s.name) + '">−</button><input data-q="' + s.id + '" inputmode="decimal" placeholder="0" aria-label="' + esc(s.name) + ' quantity in ' + s.unit + '" value="' + esc(NO.qty[s.id] || '') + '"><button data-p="' + s.id + '" aria-label="More ' + esc(s.name) + '">+</button><span class="muted small" style="width:28px">' + s.unit + '</span></div></div>').join('') + '</div></div>').join('') : '<div class="card muted">There are no services yet. ' + (can('services') ? '<a href="#/services">Add a service</a>' : 'Ask the owner to add services.') + '</div>') +
+    '<div class="card"><div class="lab">Customer</div>' + (NO.customer ? '<div class="row"><span class="av">' + esc(NO.customer.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(NO.customer.name) + '</b> <span class="muted">\u00b7 ' + esc(NO.customer.last4) + '</span><div class="small muted">' + esc(NO.customer.phone) + '</div></div><button class="btn" id="chg">Change</button></div>' : '<div class="row"><span class="av" aria-hidden="true">?</span><div class="grow muted">No customer chosen yet</div><button class="btn pri" id="chg">Choose customer</button></div>') + '</div>' +
+    (groups.length ? groups.map((g) => '<div class="card tight"><div style="padding:16px 16px 8px" class="lab">' + esc(g.c.name) + ' · ' + g.list.length + '</div><div class="list">' + g.list.map((s) => '<div class="item" style="flex-wrap:wrap"><span class="ico">' + svg(iconById(s.categoryId), 24) + '</span><div style="flex:1 1 150px;min-width:0"><b>' + esc(s.name) + '</b><div class="small muted">' + (s.unit === 'pcs' ? 'per pcs' : 'per kg') + ' · ' + money(s.price) + '</div></div><div class="qty"><button data-m="' + s.id + '" aria-label="Less ' + esc(s.name) + '">−</button><input data-q="' + s.id + '" inputmode="decimal" placeholder="0" aria-label="' + esc(s.name) + ' quantity in ' + s.unit + '" value="' + esc(NO.qty[s.id] || '') + '"><button data-p="' + s.id + '" aria-label="More ' + esc(s.name) + '">+</button><span class="muted small" style="width:28px">' + s.unit + '</span></div></div>').join('') + '</div></div>').join('') : '<div class="card muted">There are no services yet. ' + (can('services') ? '<a href="#/services">Add a service</a>' : 'Ask the owner to add services.') + '</div>') +
     '<div style="flex:1"></div><div class="sticky" id="nobar" style="margin:0 -16px"></div></div>';
   draw();
-  document.getElementById('chg').onclick = () => { NO.customer = null; render(); };
+  document.getElementById('chg').onclick = () => customerPicker(() => render());
   $app.querySelectorAll('[data-q]').forEach((i) => { i.oninput = () => { const v = i.value.replace(',', '.'); NO.qty[i.dataset.q] = v; draw(); }; });
   const step = (id, dir) => { const s = services.find((x) => x.id === id); const cur = Number(NO.qty[id]) || 0; const st = s.unit === 'pcs' ? 1 : 0.5; let n = Math.max(0, Math.round((cur + dir * st) * 100) / 100); NO.qty[id] = n ? String(n) : ''; const inp = $app.querySelector('[data-q="' + id + '"]'); inp.value = NO.qty[id]; draw(); };
   $app.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => step(b.dataset.m, -1); });
   $app.querySelectorAll('[data-p]').forEach((b) => { b.onclick = () => step(b.dataset.p, 1); });
 }
-function newOrderCustomer() {
-  const draw = () => {
-    const q = NO.q.trim().toLowerCase(), qd = q.replace(/\D/g, '');
-    const list = S.data.customers.filter((c) => !q || c.name.toLowerCase().includes(q) || (qd.length >= 3 && c.phone.includes(qd)));
-    document.getElementById('clist').innerHTML = list.length ? list.slice(0, 60).map((c) => '<button class="item link" data-c="' + c.id + '"><span class="av">' + esc(c.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(c.name) + '</b> <span class="muted">· ' + esc(c.last4) + '</span><div class="small muted">' + esc(c.phone) + '</div></div></button>').join('') : '<div class="item muted">No customer found.</div>';
-    document.getElementById('clist').querySelectorAll('[data-c]').forEach((b) => { b.onclick = () => { NO.customer = S.data.customers.find((c) => c.id === b.dataset.c); NO.saveCode = null; render(); }; });
-  };
-  $app.innerHTML = '<div class="wrap">' + offlineStrip() + topBar('New order', '#/') + '<div class="card"><div class="lab">Who is this order for?</div>' + field('csrch', 'search', 'Search name or phone', NO.q) + '<button class="btn pri" id="nc">' + svg('plus') + 'New customer</button></div><div class="card tight"><div class="list" id="clist"></div></div></div>';
-  document.getElementById('csrch').oninput = (e) => { NO.q = e.target.value; draw(); };
-  document.getElementById('nc').onclick = () => customerModal(null, (c) => { NO.customer = c; render(); });
-  draw();
+function customerPicker(done) {
+  const pick = (c) => { NO.customer = c; NO.saveCode = null; closeModal(); done(); };
+  openModal('<h2>Choose customer</h2>' + field('csrch', 'search', 'Search name or phone', NO.q) + '<button class="btn pri" id="nc">' + svg('plus') + 'New customer</button><div class="card tight" style="max-height:44vh;overflow:auto"><div class="list" id="clist"></div></div><button class="btn block" id="cx">Cancel</button>', () => {
+    const draw = () => {
+      const q = NO.q.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+      const list = S.data.customers.filter((c) => !q || c.name.toLowerCase().includes(q) || (qd.length >= 3 && c.phone.includes(qd)));
+      const box = document.getElementById('clist');
+      box.innerHTML = list.length ? list.slice(0, 60).map((c) => '<button class="item link" data-c="' + c.id + '"><span class="av">' + esc(c.name.charAt(0).toUpperCase()) + '</span><div class="grow"><b>' + esc(c.name) + '</b> <span class="muted">\u00b7 ' + esc(c.last4) + '</span><div class="small muted">' + esc(c.phone) + '</div></div></button>').join('') : '<div class="item muted">No customer found.</div>';
+      box.querySelectorAll('[data-c]').forEach((b) => { b.onclick = () => pick(S.data.customers.find((c) => c.id === b.dataset.c)); });
+    };
+    document.getElementById('csrch').oninput = (e) => { NO.q = e.target.value; draw(); };
+    document.getElementById('nc').onclick = () => customerModal(null, (c) => { NO.customer = c; NO.saveCode = null; done(); });
+    document.getElementById('cx').onclick = closeModal;
+    draw();
+  });
 }
 function orderSummary() {
   const services = S.data.services;
