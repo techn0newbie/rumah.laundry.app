@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <meta name="theme-color" content="#0A4E5A">
 <title>Laundry</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -81,7 +81,7 @@ a{color:inherit}
 .sw i{position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:12px;background:#fff;transition:left .12s}
 .sw[aria-checked=true] i{left:24px}
 .ovl{position:fixed;inset:0;background:rgba(10,30,40,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
-.modal{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:480px;max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.modal{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:480px;max-height:100%;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px}
 .modal h2{margin:0;font-size:20px;font-weight:800}
 @media(max-width:640px){.ovl{align-items:flex-end;padding:0}.modal{max-width:none;border-radius:18px 18px 0 0}}
 .sticky{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:5}
@@ -176,7 +176,7 @@ async function api(action, payload) {
   }
   return j.data;
 }
-function signOutLocal(msg) { S.token = null; S.me = null; S.data = null; S.modal = null; ssSet('lt', null); S.notice = msg || ''; render(); }
+function signOutLocal(msg) { S.token = null; S.me = null; S.data = null; ssSet('lt', null); if (S.modal) { closeModal(); } S.notice = msg || ''; render(); }
 async function signOut() { try { await api('logout'); } catch (e) { /* ignore */ } signOutLocal(''); }
 
 /* ---------- permissions ---------- */
@@ -256,8 +256,20 @@ async function printText(text) {
 
 /* ---------- routing ---------- */
 const route = () => (location.hash || '#/').slice(1).split('/').filter(Boolean);
-const go = (h) => { if (location.hash === h) { render(); } else { location.hash = h; } };
-window.addEventListener('hashchange', () => { S.modal = null; S.menu = false; render(); });
+/* A pop-up gets one history entry, so the phone's back swipe closes the pop-up instead of the screen behind it. */
+let modalPushed = false, popSkip = false, popThen = null;
+function popEntry(then) {
+  if (!modalPushed) { if (then) { then(); } return; }
+  modalPushed = false; popSkip = true; popThen = then || null; history.back();
+}
+window.addEventListener('popstate', () => {
+  if (popSkip) { popSkip = false; const f = popThen; popThen = null; if (f) { f(); } return; }
+  if (modalPushed) { modalPushed = false; S.modal = null; paintModal(); }   // the person swiped back: close the pop-up only
+});
+const navTo = (h) => { if (location.hash === h) { render(); } else { location.hash = h; } };
+const go = (h) => { if (modalPushed) { S.modal = null; paintModal(); popEntry(() => navTo(h)); } else { navTo(h); } };
+window.addEventListener('hashchange', () => { if (S.modal) { S.modal = null; paintModal(); modalPushed = false; } S.menu = false; render(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.modal) { closeModal(); } });
 window.addEventListener('online', () => { S.offline = false; paintOffline(); });
 window.addEventListener('offline', () => { S.offline = true; paintOffline(); });
 function paintOffline() { const e = document.getElementById('offline'); if (e) { e.hidden = !S.offline; } }
@@ -280,8 +292,15 @@ function field(id, icon, label, value, extra) {
   return '<div class="field' + (extra.area ? ' ta' : '') + '"><span class="ic">' + svg(icon) + '</span><' + tag + ' id="' + id + '" placeholder=" "' + val + (extra.type ? ' type="' + extra.type + '"' : '') + (extra.mode ? ' inputmode="' + extra.mode + '"' : '') + (extra.max ? ' maxlength="' + extra.max + '"' : '') + (extra.rows ? ' rows="' + extra.rows + '"' : '') + ' autocomplete="off">' + (extra.area ? inner + '</textarea>' : '') + '<label for="' + id + '">' + esc(label) + '</label></div>';
 }
 const val = (id) => { const e = document.getElementById(id); return e ? e.value : ''; };
-function openModal(html, onMount) { S.modal = { html, onMount }; paintModal(); }
-function closeModal() { S.modal = null; paintModal(); }
+function openModal(html, onMount) {
+  if (!modalPushed) { try { history.pushState({ m: 1 }, ''); modalPushed = true; } catch (e) { /* history not available */ } }
+  S.modal = { html, onMount }; paintModal();
+}
+function closeModal() {
+  S.modal = null; paintModal();
+  // Remove the history entry, unless another pop-up opens right away and reuses it.
+  setTimeout(() => { if (!S.modal) { popEntry(); } }, 0);
+}
 function paintModal() {
   let host = document.getElementById('modal-host');
   if (!host) { host = document.createElement('div'); host.id = 'modal-host'; document.body.appendChild(host); }
@@ -289,8 +308,20 @@ function paintModal() {
   host.innerHTML = '<div class="ovl" id="ovl"><div class="modal" role="dialog" aria-modal="true">' + S.modal.html + '</div></div>';
   document.getElementById('ovl').addEventListener('mousedown', (e) => { if (e.target.id === 'ovl') { closeModal(); } });
   if (S.modal.onMount) { S.modal.onMount(host); }
-  const f = host.querySelector('input,textarea,select'); if (f && !/^(checkbox|radio)$/.test(f.type)) { try { f.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+  fitModal();
+  // On a touch phone, do not pop the keyboard up by itself. On a computer, put the cursor in the first box.
+  if (window.matchMedia && matchMedia('(pointer:fine)').matches) { const f = host.querySelector('input,textarea'); if (f && !/^(checkbox|radio)$/.test(f.type)) { try { f.focus({ preventScroll: true }); } catch (e) { /* ignore */ } } }
 }
+/* Keep the pop-up inside the part of the screen the keyboard leaves free. */
+function fitModal() {
+  const o = document.getElementById('ovl'); const vv = window.visualViewport;
+  if (!o || !vv) { return; }
+  o.style.top = vv.offsetTop + 'px'; o.style.height = vv.height + 'px'; o.style.bottom = 'auto';
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', fitModal); visualViewport.addEventListener('scroll', fitModal); }
+document.addEventListener('focusin', (e) => {
+  if (S.modal && e.target && e.target.closest && e.target.closest('.modal') && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { setTimeout(() => { try { e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (x) { /* ignore */ } }, 250); }
+});
 const modalErr = (m) => { const e = document.getElementById('merr'); if (e) { e.textContent = m || ''; e.hidden = !m; } };
 /* A save button: shows Saving..., then "Not saved. Try again" if the connection fails. */
 async function saving(btnId, fn) {
@@ -324,7 +355,7 @@ async function render() {
 
 /* ================= Login / first-time setup ================= */
 async function renderLogin() {
-  S.modal = null; paintModal();
+  if (S.modal) { closeModal(); }
   if (!API_URL || API_URL.indexOf('PASTE_') === 0) {
     $app.innerHTML = '<div class="center"><div class="card" style="max-width:460px"><h1 class="h1">Almost there</h1><div class="muted">The app is not connected to the Google Sheet yet. Open index.html and paste the web app address into <b>API_URL</b>.</div></div></div>'; return;
   }
@@ -463,7 +494,7 @@ function orderSummary() {
     document.getElementById('sv').onclick = () => saving('sv', async () => {
       const d = await api('order.create', { customerId: NO.customer.id, saveCode: NO.saveCode, items: L.map((l) => ({ serviceId: l.s.id, qty: l.q })) });
       NO = { customer: null, qty: {}, q: '', saveCode: null };
-      S.modal = null; paintModal(); go('#/order/' + encodeURIComponent(d.order.id));
+      go('#/order/' + encodeURIComponent(d.order.id));
     });
   });
 }
