@@ -109,9 +109,13 @@ a{color:inherit}
 .qty input{width:84px;height:48px;border:1px solid var(--line2);border-radius:10px;text-align:center;font-weight:700}
 .qty button{width:44px;height:48px;border-radius:10px;border:1px solid var(--line2);background:#fff;font-size:22px;font-weight:700}
 .sr{position:absolute;left:-9999px}
+html{touch-action:manipulation}
+.tile:active,.item.link:active,.btn:active,.chip:active,.back:active,.iconbtn:active,.pad button:active{opacity:.65;transform:scale(.98)}
+#bar{position:fixed;left:0;top:0;height:3px;width:0;background:var(--pri);z-index:99;opacity:0;transition:width .5s ease,opacity .2s}
 </style>
 </head>
 <body>
+<div id="bar"></div>
 <div id="app"></div>
 <script>
 'use strict';
@@ -165,18 +169,35 @@ const S = { token: ssGet('lt'), me: null, data: null, view: null, offline: !navi
 async function api(action, payload) {
   if (!API_URL || API_URL.indexOf('PASTE_') === 0) { throw { code: 'setup', message: 'The app is not connected yet. Paste the web app address into index.html (API_URL).' }; }
   let res;
+  barOn();
   try {
     res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action, token: S.token }, payload || {})) });
-  } catch (e) { throw { code: 'network', message: 'No connection. Check the internet and try again.' }; }
+  } catch (e) { barOff(); throw { code: 'network', message: 'No connection. Check the internet and try again.' }; }
   let j;
-  try { j = await res.json(); } catch (e) { throw { code: 'network', message: 'The server did not answer. Try again.' }; }
+  try { j = await res.json(); } catch (e) { barOff(); throw { code: 'network', message: 'The server did not answer. Try again.' }; }
+  barOff();
+  if (j.ok) { primeOrders(j.data); if (/^order\.(create|pay|complete|cancel)$/.test(action)) { Object.keys(DASHC).forEach((k) => delete DASHC[k]); } }   // totals changed: do not show old ones
   if (!j.ok) {
     if (j.code === 'auth') { signOutLocal(j.message || 'Your sign-in expired. Please sign in again.'); }
     throw { code: j.code, message: j.message };
   }
   return j.data;
 }
-function signOutLocal(msg) { S.token = null; S.me = null; S.data = null; ssSet('lt', null); if (S.modal) { closeModal(); } S.notice = msg || ''; render(); }
+/* Thin progress bar at the top while the app waits for the server. */
+const barEl = document.getElementById('bar'); let pending = 0, barTimer = null;
+function barOn() { pending++; if (pending === 1) { barTimer = setTimeout(() => { barEl.style.opacity = 1; barEl.style.width = '70%'; }, 120); } }
+function barOff() { pending = Math.max(0, pending - 1); if (!pending) { clearTimeout(barTimer); barEl.style.width = '100%'; setTimeout(() => { if (!pending) { barEl.style.opacity = 0; barEl.style.width = '0'; } }, 220); } }
+/* Orders the server already sent are kept, so an order opens at once and refreshes in the background. */
+const ORDERC = {}, DASHC = {};
+function primeOrders(d) {
+  if (!d) { return; }
+  const keep = (o, fresh) => { const c = ORDERC[o.id]; if (!c || fresh || !c.t) { ORDERC[o.id] = { o, t: fresh ? Date.now() : (c ? c.t : 0) }; } };
+  if (d.order) { keep(d.order, true); }
+  (Array.isArray(d.orders) ? d.orders : []).forEach((o) => { if (o && o.id && o.items) { keep(o, false); } });
+  (Array.isArray(d.latest) ? d.latest : []).forEach((o) => { if (o && o.id && o.items) { keep(o, false); } });
+}
+const LOADING = '<div class="wrap"><div class="card muted"><span class="spin"></span> Loading...</div></div>';
+function signOutLocal(msg) { Object.keys(ORDERC).forEach((k) => delete ORDERC[k]); Object.keys(DASHC).forEach((k) => delete DASHC[k]); S.pre = null; S.token = null; S.me = null; S.data = null; ssSet('lt', null); if (S.modal) { closeModal(); } S.notice = msg || ''; render(); }
 async function signOut() { try { await api('logout'); } catch (e) { /* ignore */ } signOutLocal(''); }
 
 /* ---------- permissions ---------- */
@@ -378,7 +399,7 @@ async function renderLogin() {
       busy = true; paint('Checking...');
       try {
         const d = await api('login', { pin });
-        S.token = d.token; ssSet('lt', d.token); S.me = d.me; S.data = null; S.lastActive = Date.now(); busy = false; location.hash = '#/'; render();
+        S.token = d.token; ssSet('lt', d.token); S.me = d.me; S.data = d.boot; S.pre = d.dash; S.lastActive = Date.now(); busy = false; location.hash = '#/'; render();
       } catch (e) { busy = false; pin = ''; paint(e.message, true); }
     }
   };
@@ -400,7 +421,16 @@ function renderSetup() {
 /* ================= Dashboard ================= */
 let dashPeriod = 'today';
 async function vDashboard() {
-  const d = await api('dashboard', { period: dashPeriod });
+  const key = dashPeriod;
+  const pre = S.pre; S.pre = null;
+  if (pre && key === 'today') { DASHC.today = pre; return drawDash(pre); }          // came with the sign-in: no extra trip
+  if (DASHC[key]) { drawDash(DASHC[key]); } else { $app.innerHTML = LOADING; }       // show the last numbers at once
+  const d = await api('dashboard', { period: key });
+  const changed = JSON.stringify(DASHC[key]) !== JSON.stringify(d);
+  DASHC[key] = d;
+  if (changed && dashPeriod === key && route()[0] === undefined) { drawDash(d); }
+}
+function drawDash(d) {
   const st = S.data.settings;
   const tile = (href, icon, label, ok, main) => ok ? '<a class="tile' + (main ? ' main' : '') + '" href="' + href + '">' + svg(icon, 26) + '<span>' + label + '</span></a>' : '<div class="tile locked" aria-disabled="true" role="link">' + svg('lock', 26) + '<span>' + label + '<br><span class="small" style="font-weight:600">Owner only</span></span></div>';
   const kp = d.locked
@@ -502,7 +532,12 @@ function orderSummary() {
 /* ================= Order detail ================= */
 async function vOrder(r) {
   const id = decodeURIComponent(r[1] || '');
-  const { order: o } = await api('order.get', { id });
+  const c = ORDERC[id];
+  if (c) { drawOrder(c.o); if (Date.now() - c.t < 8000) { return; } } else { $app.innerHTML = LOADING; }   // open at once, refresh quietly
+  const { order } = await api('order.get', { id });
+  if (!c || JSON.stringify(c.o) !== JSON.stringify(order)) { if (route()[0] === 'order' && decodeURIComponent(route()[1] || '') === id) { drawOrder(order); } }
+}
+function drawOrder(o) {
   const live = o.status === 'Received';
   const pays = (m) => ({ Cash: 'Cash', 'Bank transfer': 'Bank transfer', QRIS: 'QRIS' }[m] || m);
   const sub = o.items.reduce((a, i) => a + i.subtotal, 0), rnd = o.total - sub;
@@ -660,6 +695,7 @@ function categoryModal(c, presetType, done, inUse) {
 /* ================= Expenses ================= */
 async function vExpenses() {
   if (!can('expenses')) { return $app.innerHTML = '<div class="wrap">' + topBar('Expenses', '#/') + '<div class="card">' + lockedBtn('Expenses') + '</div></div>'; }
+  $app.innerHTML = '<div class="wrap">' + topBar('Expenses', '#/') + '<div class="card muted"><span class="spin"></span> Loading...</div></div>';
   const { expenses } = await api('expense.list');
   const ym = todayStr().slice(0, 7);
   const month = expenses.filter((x) => x.at.startsWith(ym)).reduce((a, x) => a + x.price, 0);
